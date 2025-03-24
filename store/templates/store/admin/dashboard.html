@@ -1,0 +1,380 @@
+{% extends 'store/admin/base_admin.html' %}
+{% load static %}
+
+{% block admin_content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
+        <h1 class="h2">Admin Dashboard</h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <a href="{% url 'admin_monthly_sales_report' %}" class="btn btn-primary">
+                <i class="fas fa-chart-line"></i> Monthly Sales Report
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <!-- Total Orders -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="stat-card card border-color-primary">
+                <div class="card-body">
+                    <div class="stat-icon bg-primary-light mb-2">
+                        <i class="fas fa-shopping-cart text-primary"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-title text-primary">Total Orders</div>
+                        <div class="stat-value">{{ total_orders }}</div>
+                        <div class="stat-subtitle">All time</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Revenue -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="stat-card card border-color-success">
+                <div class="card-body">
+                    <div class="stat-icon bg-success-light mb-2">
+                        <i class="fas fa-rupee-sign text-success"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-title text-success">Revenue</div>
+                        <div class="stat-value">₹{{ total_revenue }}</div>
+                        <div class="stat-subtitle">All time</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Users -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="stat-card card border-color-info">
+                <div class="card-body">
+                    <div class="stat-icon bg-info-light mb-2">
+                        <i class="fas fa-users text-info"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-title text-info">Active Users</div>
+                        <div class="stat-value">{{ active_users_count }}</div>
+                        <div class="stat-subtitle">With orders</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pending Deliveries -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="stat-card card border-color-warning">
+                <div class="card-body">
+                    <div class="stat-icon bg-warning-light mb-2">
+                        <i class="fas fa-truck text-warning"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-title text-warning">Pending Deliveries</div>
+                        <div class="stat-value">{{ pending_deliveries_count }}</div>
+                        <div class="stat-subtitle">Need attention</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Access Cards -->
+    <div class="row mb-4">
+        <!-- Orders -->
+        <div class="col-md mb-4">
+            <a href="{% url 'admin_orders' %}" class="text-decoration-none">
+                <div class="quick-card card h-100">
+                    <div class="card-body text-center">
+                        <div class="quick-icon bg-primary text-white mb-3">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <h5 class="card-title text-dark">Orders</h5>
+                        <p class="card-text text-muted">Manage orders</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Categories -->
+        <div class="col-md mb-4">
+            <a href="{% url 'admin_categories' %}" class="text-decoration-none">
+                <div class="quick-card card h-100">
+                    <div class="card-body text-center">
+                        <div class="quick-icon bg-info text-white mb-3">
+                            <i class="fas fa-tags"></i>
+                        </div>
+                        <h5 class="card-title text-dark">Categories</h5>
+                        <p class="card-text text-muted">Manage categories</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Products -->
+        <div class="col-md mb-4">
+            <a href="{% url 'admin_products' %}" class="text-decoration-none">
+                <div class="quick-card card h-100">
+                    <div class="card-body text-center">
+                        <div class="quick-icon bg-success text-white mb-3">
+                            <i class="fas fa-box"></i>
+                        </div>
+                        <h5 class="card-title text-dark">Products</h5>
+                        <p class="card-text text-muted">Manage products</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Suppliers -->
+        <div class="col-md mb-4">
+            <a href="{% url 'admin_suppliers' %}" class="text-decoration-none">
+                <div class="quick-card card h-100">
+                    <div class="card-body text-center">
+                        <div class="quick-icon bg-info text-white mb-3">
+                            <i class="fas fa-truck"></i>
+                        </div>
+                        <h5 class="card-title text-dark">Suppliers</h5>
+                        <p class="card-text text-muted">Manage suppliers</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Stock -->
+        <div class="col-md mb-4">
+            <a href="{% url 'admin_stock_management' %}" class="text-decoration-none">
+                <div class="quick-card card h-100">
+                    <div class="card-body text-center">
+                        <div class="quick-icon bg-warning text-white mb-3">
+                            <i class="fas fa-boxes"></i>
+                        </div>
+                        <h5 class="card-title text-dark">Stock</h5>
+                        <p class="card-text text-muted">Manage stock</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Recent Orders Section -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Recent Orders</h6>
+            <a href="{% url 'admin_orders' %}" class="btn btn-primary btn-sm">View All Orders</a>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Customer</th>
+                            <th>Date</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in recent_orders %}
+                        <tr>
+                            <td>#{{ order.id }}</td>
+                            <td>{{ order.user.get_full_name|default:order.user.username }}</td>
+                            <td>{{ order.created_at|date:"M d, Y" }}</td>
+                            <td>₹{{ order.total_amount }}</td>
+                            <td>
+                                <span class="badge {% if order.status == 'delivered' %}bg-success{% elif order.status == 'cancelled' %}bg-danger{% elif order.status == 'shipped' %}bg-primary{% elif order.status == 'processing' %}bg-info{% else %}bg-warning{% endif %}">
+                                    {{ order.status|title }}
+                                </span>
+                            </td>
+                            <td>
+                                <a href="{% url 'admin_view_order_details' order.id %}" class="btn btn-info btn-sm">
+                                    <i class="fas fa-eye"></i> View
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center">No recent orders found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Stat Cards */
+.stat-card {
+    border-radius: 10px;
+    border: 2px solid transparent;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+.stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+.stat-content {
+    margin-top: 0.5rem;
+}
+.stat-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-bottom: 0.25rem;
+}
+.stat-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+.stat-subtitle {
+    font-size: 0.75rem;
+    color: #6c757d;
+}
+
+/* Background Colors */
+.bg-primary-light {
+    background-color: rgba(78, 115, 223, 0.1);
+}
+.bg-success-light {
+    background-color: rgba(28, 200, 138, 0.1);
+}
+.bg-info-light {
+    background-color: rgba(54, 185, 204, 0.1);
+}
+.bg-warning-light {
+    background-color: rgba(246, 194, 62, 0.1);
+}
+
+/* Quick Access Cards */
+.quick-card {
+    border: none;
+    border-radius: 10px;
+    transition: all 0.3s;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+.quick-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+.quick-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    font-size: 1.5rem;
+}
+.bg-primary {
+    background-color: #4e73df !important;
+}
+.bg-success {
+    background-color: #1cc88a !important;
+}
+.bg-info {
+    background-color: #36b9cc !important;
+}
+.bg-warning {
+    background-color: #f6c23e !important;
+}
+
+/* Table */
+.table {
+    margin-bottom: 0;
+}
+.table thead th {
+    border-top: none;
+    border-bottom: 2px solid #e3e6f0;
+}
+.badge {
+    padding: 0.5em 1em;
+    font-weight: 500;
+}
+
+/* Border Colors */
+.border-color-primary {
+    border-color: #4e73df;
+}
+.border-color-success {
+    border-color: #1cc88a;
+}
+.border-color-info {
+    border-color: #36b9cc;
+}
+.border-color-warning {
+    border-color: #f6c23e;
+}
+</style>
+{% endblock %}
+
+{% block sidebar %}
+<nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
+    <div class="position-sticky pt-3">
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link active" href="{% url 'admin_dashboard' %}">
+                    <i class="fas fa-tachometer-alt"></i>
+                    Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'admin_orders' %}">
+                    <i class="fas fa-shopping-cart"></i>
+                    Orders
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'admin_products' %}">
+                    <i class="fas fa-box"></i>
+                    Products
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'admin_categories' %}">
+                    <i class="fas fa-tags"></i>
+                    Categories
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'admin_stock_management' %}">
+                    <i class="fas fa-warehouse"></i>
+                    Stock Management
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'admin_users' %}">
+                    <i class="fas fa-users"></i>
+                    Users
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'admin_suppliers' %}">
+                    <i class="fas fa-truck"></i>
+                    Suppliers
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'admin_reports' %}">
+                    <i class="fas fa-chart-bar"></i>
+                    Reports
+                </a>
+            </li>
+        </ul>
+    </div>
+</nav>
+{% endblock %}

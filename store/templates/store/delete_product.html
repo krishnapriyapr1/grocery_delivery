@@ -1,0 +1,49 @@
+{% extends 'store/base.html' %}
+
+{% block title %}Delete Product - Fresh Mart{% endblock %}
+
+{% block extra_css %}
+<style>
+    .delete-container {
+        max-width: 600px;
+        margin: 2rem auto;
+        padding: 2rem;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        text-align: center;
+    }
+    
+    .product-image {
+        max-width: 200px;
+        margin: 1rem auto;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="delete-container">
+        <h2 class="mb-4">Delete Product</h2>
+        
+        <div class="alert alert-danger">
+            <p class="mb-0">Are you sure you want to delete the following product?</p>
+        </div>
+        
+        <div class="product-details my-4">
+            <h4>{{ product.name }}</h4>
+            {% if product.image %}
+            <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-image d-block">
+            {% endif %}
+            <p class="text-muted">Category: {{ product.category.name }}</p>
+            <p class="text-muted">Price: ${{ product.price }}</p>
+        </div>
+        
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Yes, Delete Product</button>
+            <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

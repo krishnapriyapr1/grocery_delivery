@@ -1,0 +1,208 @@
+{% extends 'store/base.html' %}
+{% load static %}
+
+{% block title %}{{ category.name }} - Fresh Mart{% endblock %}
+
+{% block extra_css %}
+<style>
+    .category-header {
+        background: linear-gradient(135deg, #00b761 0%, #008a49 100%);
+        color: white;
+        padding: 3rem 0;
+        margin-bottom: 3rem;
+    }
+    
+    .category-title {
+        font-size: 2.5rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+    
+    .category-description {
+        font-size: 1.1rem;
+        opacity: 0.9;
+    }
+    
+    .products-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 2rem;
+        padding: 0 1rem;
+    }
+    
+    .product-card {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .product-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+    
+    .product-image {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+    }
+    
+    .product-info {
+        padding: 1.5rem;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .product-name {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+        text-decoration: none;
+    }
+    
+    .product-name:hover {
+        color: #00b761;
+    }
+    
+    .product-description {
+        color: #6c757d;
+        margin-bottom: 1rem;
+        flex-grow: 1;
+    }
+    
+    .product-price {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #00b761;
+        margin-bottom: 1rem;
+    }
+    
+    .add-to-cart-btn {
+        background: #00b761;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.75rem;
+        font-weight: 500;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        transition: all 0.3s;
+    }
+    
+    .add-to-cart-btn:hover {
+        background: #009951;
+        transform: translateY(-2px);
+    }
+    
+    .empty-category {
+        text-align: center;
+        padding: 3rem;
+    }
+    
+    .empty-category i {
+        font-size: 4rem;
+        color: #e1e1e1;
+        margin-bottom: 1.5rem;
+    }
+    
+    .empty-category h3 {
+        color: #2c3e50;
+        margin-bottom: 1rem;
+    }
+    
+    .empty-category p {
+        color: #6c757d;
+        margin-bottom: 1.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="category-header">
+    <div class="container">
+        <h1 class="category-title">{{ category.name }}</h1>
+        {% if category.description %}
+            <p class="category-description">{{ category.description }}</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="container my-5">
+    <div class="products-grid">
+        {% for product in products %}
+            {% include 'store/includes/product_card.html' with product=product %}
+        {% empty %}
+            <div class="empty-category">
+                <i class="fas fa-box-open"></i>
+                <h3>No Products Found</h3>
+                <p>There are currently no products in this category.</p>
+                <a href="{% url 'home' %}" class="btn btn-primary">
+                    Continue Shopping
+                </a>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle add to cart forms
+    document.querySelectorAll('.add-to-cart-form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            
+            fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success message
+                    const toast = document.createElement('div');
+                    toast.className = 'toast position-fixed bottom-0 end-0 m-3';
+                    toast.setAttribute('role', 'alert');
+                    toast.setAttribute('aria-live', 'assertive');
+                    toast.setAttribute('aria-atomic', 'true');
+                    toast.innerHTML = `
+                        <div class="toast-header bg-success text-white">
+                            <i class="fas fa-check-circle me-2"></i>
+                            <strong class="me-auto">Success</strong>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+                        </div>
+                        <div class="toast-body">
+                            Item added to cart successfully!
+                        </div>
+                    `;
+                    document.body.appendChild(toast);
+                    const bsToast = new bootstrap.Toast(toast);
+                    bsToast.show();
+                } else {
+                    alert(data.error || 'Failed to add product to cart');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while adding the product to cart');
+            });
+        });
+    });
+});
+</script>
+{% endblock %}

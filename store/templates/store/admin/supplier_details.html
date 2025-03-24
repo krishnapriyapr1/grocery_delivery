@@ -1,0 +1,501 @@
+{% extends 'store/admin/base_admin.html' %}
+{% load static %}
+
+{% block title %}Supplier Details - {{ supplier.name }} - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar">
+            <div class="position-sticky pt-3">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'admin_dashboard' %}">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{% url 'admin_suppliers' %}">
+                            <i class="fas fa-truck"></i> Suppliers
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if section == 'messages' %}active{% endif %}" href="{% url 'admin_messages' %}">
+                            <i class="bi bi-chat-dots"></i>
+                            Messages
+                            {% if unread_messages_count > 0 %}
+                            <span class="badge bg-danger">{{ unread_messages_count }}</span>
+                            {% endif %}
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Main content -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb" class="mt-3">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'admin_dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'admin_suppliers' %}">Suppliers</a></li>
+                    <li class="breadcrumb-item active">{{ supplier.name }}</li>
+                </ol>
+            </nav>
+
+            <!-- Supplier Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>{{ supplier.name }}</h1>
+                <div class="btn-group">
+                    {% if supplier.is_approved %}
+                    <button class="btn btn-warning" onclick="toggleSupplierStatus({{ supplier.id }}, false)">
+                        <i class="fas fa-ban"></i> Suspend Supplier
+                    </button>
+                    {% else %}
+                    <button class="btn btn-success" onclick="toggleSupplierStatus({{ supplier.id }}, true)">
+                        <i class="fas fa-check"></i> Approve Supplier
+                    </button>
+                    {% endif %}
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#messageModal">
+                        <i class="fas fa-envelope"></i> Send Message
+                    </button>
+                </div>
+            </div>
+
+            <!-- Supplier Information Cards -->
+            <div class="row mb-4">
+                <!-- Basic Info Card -->
+                <div class="col-md-4">
+                    <div class="card h-100">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Basic Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-unstyled">
+                                <li class="mb-2">
+                                    <i class="fas fa-phone text-primary me-2"></i> {{ supplier.phone }}
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-envelope text-primary me-2"></i> {{ supplier.email }}
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-map-marker-alt text-primary me-2"></i> {{ supplier.address }}
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-calendar text-primary me-2"></i> Joined: {{ supplier.created_at|date:"M d, Y" }}
+                                </li>
+                                <li>
+                                    <i class="fas fa-check-circle text-primary me-2"></i> Status: 
+                                    <span class="badge {% if supplier.is_approved %}bg-success{% else %}bg-warning{% endif %}">
+                                        {{ supplier.is_approved|yesno:"Approved,Pending" }}
+                                    </span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Performance Metrics Card -->
+                <div class="col-md-8">
+                    <div class="card h-100">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Performance Metrics</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5>Performance Metrics</h5>
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="refreshMetrics()">
+                                        <i class="fas fa-sync-alt"></i> Refresh
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="row g-3">
+                                <div class="col-md-6 col-lg-3">
+                                    <div class="card h-100">
+                                        <div class="card-body">
+                                            <h6 class="card-subtitle mb-2 text-muted">Total Products</h6>
+                                            <h3 class="card-title mb-0">{{ supplier.products.count }}</h3>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-lg-3">
+                                    <div class="card h-100">
+                                        <div class="card-body">
+                                            <h6 class="card-subtitle mb-2 text-muted">Total Restock Requests</h6>
+                                            <h3 class="card-title mb-0">{{ total_restock_requests }}</h3>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <script>
+                                function refreshMetrics() {
+                                    fetch(`/store-admin/supplier/${supplier.id}/metrics/`, {
+                                        method: 'GET',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                                        }
+                                    })
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        if (data.success) {
+                                            location.reload();
+                                        } else {
+                                            alert('Failed to refresh metrics');
+                                        }
+                                    })
+                                    .catch(error => {
+                                        console.error('Error:', error);
+                                        alert('An error occurred while refreshing metrics');
+                                    });
+                                }
+                            </script>
+                            <div class="row mt-3">
+                                <div class="col-12">
+                                    <h6>Recent Activity</h6>
+                                    <div class="timeline">
+                                        {% for activity in recent_activities %}
+                                        <div class="timeline-item">
+                                            <div class="timeline-date">{{ activity.date|date:"M d, Y" }}</div>
+                                            <div class="timeline-content">{{ activity.description }}</div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity Card -->
+                <div class="col-md-4">
+                    <div class="card h-100">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Recent Activity</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="timeline">
+                                {% for activity in recent_activities %}
+                                <div class="timeline-item">
+                                    <div class="timeline-date">{{ activity.date|date:"M d" }}</div>
+                                    <div class="timeline-content">
+                                        {{ activity.description }}
+                                    </div>
+                                </div>
+                                {% empty %}
+                                <p>No recent activity</p>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Products and Restock Requests Tabs -->
+            <ul class="nav nav-tabs mb-3" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active" data-bs-toggle="tab" href="#products">Products ({{ supplier.products.count }})</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="tab" href="#restock">Restock Requests</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="tab" href="#messages">Messages</a>
+                </li>
+            </ul>
+
+            <div class="tab-content">
+                <!-- Products Tab -->
+                <div class="tab-pane fade show active" id="products">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Category</th>
+                                    <th>Price</th>
+                                    <th>Stock</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for product in supplier.products.all %}
+                                <tr>
+                                    <td>{{ product.name }}</td>
+                                    <td>{{ product.category.name }}</td>
+                                    <td>${{ product.price }}</td>
+                                    <td>
+                                        <span class="badge {% if product.stock > product.reorder_level %}bg-success{% else %}bg-danger{% endif %}">
+                                            {{ product.stock }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge {% if product.is_available %}bg-success{% else %}bg-danger{% endif %}">
+                                            {{ product.is_available|yesno:"Active,Inactive" }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'edit_product' product.id %}" class="btn btn-sm btn-primary me-1">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{% url 'admin_stock_management' %}?product_id={{ product.id }}" class="btn btn-sm btn-warning" data-product-id="{{ product.id }}">
+                                            <i class="fas fa-box"></i> Restock
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6">No products found</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Restock Requests Tab -->
+                <div class="tab-pane fade" id="restock">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Quantity</th>
+                                    <th>Requested On</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for request in restock_requests %}
+                                <tr>
+                                    <td>{{ request.product.name }}</td>
+                                    <td>{{ request.quantity }}</td>
+                                    <td>{{ request.created_at|date:"M d, Y" }}</td>
+                                    <td>
+                                        <span class="badge {% if request.status == 'completed' %}bg-success{% elif request.status == 'pending' %}bg-warning{% else %}bg-danger{% endif %}">
+                                            {{ request.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if request.status == 'pending' %}
+                                        <button class="btn btn-sm btn-success" onclick="updateRestockStatus({{ request.id }}, 'completed')">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger" onclick="updateRestockStatus({{ request.id }}, 'rejected')">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5">No restock requests found</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Messages Tab -->
+                <div class="tab-pane fade" id="messages">
+                    <div class="messages-container">
+                        {% for message in messages %}
+                        <div class="message-item {% if message.is_from_admin %}message-sent{% else %}message-received{% endif %}">
+                            <div class="message-content">
+                                {{ message.content }}
+                            </div>
+                            <div class="message-meta">
+                                {{ message.created_at|date:"M d, Y H:i" }}
+                            </div>
+                        </div>
+                        {% empty %}
+                        <p>No messages found</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- Message Modal -->
+<div class="modal fade" id="messageModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Send Message to {{ supplier.name }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="messageForm" data-supplier-id="{{ supplier.id }}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Message</label>
+                        <textarea class="form-control" name="message" rows="4" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Send Message</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .timeline {
+        position: relative;
+        padding: 20px 0;
+    }
+    .timeline-item {
+        padding-left: 24px;
+        margin-bottom: 20px;
+        border-left: 2px solid #e9ecef;
+        position: relative;
+    }
+    .timeline-date {
+        font-size: 0.875rem;
+        color: #6c757d;
+    }
+    .timeline-content {
+        margin-top: 5px;
+    }
+    .messages-container {
+        max-height: 400px;
+        overflow-y: auto;
+        padding: 20px;
+    }
+    .message-item {
+        margin-bottom: 20px;
+        max-width: 80%;
+    }
+    .message-sent {
+        margin-left: auto;
+    }
+    .message-received {
+        margin-right: auto;
+    }
+    .message-content {
+        padding: 10px 15px;
+        border-radius: 10px;
+        background-color: #f8f9fa;
+    }
+    .message-sent .message-content {
+        background-color: #007bff;
+        color: white;
+    }
+    .message-meta {
+        font-size: 0.75rem;
+        color: #6c757d;
+        margin-top: 5px;
+    }
+    .metric-box {
+        background-color: #f8f9fa;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const refreshMetricsButton = document.getElementById('refreshMetricsButton');
+        if (refreshMetricsButton) {
+            refreshMetricsButton.addEventListener('click', function() {
+                fetch("{% url 'supplier_details' supplier.id %}", {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('totalProducts').textContent = data.total_products;
+                    document.getElementById('totalRestockRequests').textContent = data.total_restock_requests;
+                    document.getElementById('responseRate').textContent = data.response_rate.toFixed(1) + '%';
+                    document.getElementById('totalSales').textContent = '$' + data.total_sales.toFixed(2);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to refresh metrics. Please try again.');
+                });
+            });
+        }
+
+        // Handle supplier status toggle
+        const toggleForm = document.getElementById('toggleStatusForm');
+        if (toggleForm) {
+            toggleForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const supplierId = this.dataset.supplierId;
+                const currentStatus = this.dataset.currentStatus === 'true';
+                const newStatus = !currentStatus;
+
+                fetch(`/store-admin/supplier/${supplierId}/toggle-status/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    },
+                    body: JSON.stringify({
+                        approve: newStatus
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert(data.message || 'Failed to update supplier status');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while updating supplier status');
+                });
+            });
+        }
+
+        // Handle message form submission
+        const messageForm = document.getElementById('messageForm');
+        if (messageForm) {
+            messageForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const formData = new FormData(this);
+                const supplierId = this.dataset.supplierId;
+
+                fetch(`/store-admin/supplier/message/${supplierId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    },
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Close modal and show success message
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('messageModal'));
+                        modal.hide();
+                        alert('Message sent successfully');
+                        location.reload();
+                    } else {
+                        alert(data.message || 'Failed to send message');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while sending the message');
+                });
+            });
+        }
+    });
+</script>
+{% endblock %}

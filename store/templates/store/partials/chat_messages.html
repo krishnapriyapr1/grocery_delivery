@@ -1,0 +1,30 @@
+{% for message in messages %}
+    <div class="message-bubble {% if message.is_from_customer %}message-customer{% else %}message-delivery{% endif %}">
+        <div class="message-content">
+            {{ message.message }}
+        </div>
+        <div class="message-time text-end">
+            {{ message.created_at|date:"g:i A" }}
+            {% if not message.is_from_customer %}
+                {% if message.is_read %}
+                    <i class="bi bi-check2-all"></i>
+                {% else %}
+                    <i class="bi bi-check2"></i>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+{% empty %}
+    <div class="text-center text-muted py-4">
+        <i class="bi bi-chat-dots fs-1"></i>
+        <p class="mt-2">No messages yet. Start the conversation!</p>
+    </div>
+{% endfor %}
+
+<script>
+    // Scroll to bottom of messages
+    var chatMessages = document.getElementById('chatMessages');
+    if (chatMessages) {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+</script>

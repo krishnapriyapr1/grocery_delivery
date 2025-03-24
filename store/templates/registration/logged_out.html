@@ -1,0 +1,88 @@
+{% extends 'store/base.html' %}
+{% load static %}
+
+{% block title %}Logged Out - Fresh Mart{% endblock %}
+
+{% block extra_css %}
+<style>
+    .logout-container {
+        min-height: calc(100vh - 76px);
+        background-color: #f8f9fa;
+        padding: 3rem 0;
+    }
+    
+    .logout-card {
+        background: white;
+        border: none;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 0 40px rgba(0,0,0,0.1);
+        text-align: center;
+        padding: 3rem;
+    }
+    
+    .logout-icon {
+        font-size: 4rem;
+        color: #00b761;
+        margin-bottom: 1.5rem;
+    }
+    
+    .logout-title {
+        font-size: 2rem;
+        color: #333;
+        margin-bottom: 1rem;
+        font-weight: 600;
+    }
+    
+    .logout-message {
+        color: #666;
+        margin-bottom: 2rem;
+        font-size: 1.1rem;
+    }
+    
+    .btn-auth {
+        background-color: #00b761;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.8rem 2rem;
+        font-size: 1rem;
+        font-weight: 500;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-block;
+    }
+    
+    .btn-auth:hover {
+        background-color: #009951;
+        transform: translateY(-2px);
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="logout-container">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="logout-card">
+                    <div class="logout-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <h1 class="logout-title">Successfully Logged Out</h1>
+                    <p class="logout-message">Thank you for shopping with Fresh Mart. We hope to see you again soon!</p>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'login' %}" class="btn btn-auth">
+                            <i class="fas fa-sign-in-alt me-2"></i>Sign In Again
+                        </a>
+                        <a href="{% url 'home' %}" class="btn btn-outline-secondary mt-2">
+                            <i class="fas fa-home me-2"></i>Return to Home
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,632 @@
+{% extends 'store/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+    .sidebar {
+        min-height: calc(100vh - 56px);
+        background-color: #343a40;
+        padding-top: 20px;
+    }
+    .sidebar a {
+        color: #fff;
+        padding: 10px 20px;
+        display: block;
+    }
+    .sidebar a:hover {
+        background-color: #495057;
+        text-decoration: none;
+    }
+    .sidebar a.active {
+        background-color: #0d6efd;
+    }
+    .dashboard-card {
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .stats-card {
+        background-color: #fff;
+        border-left: 4px solid;
+    }
+    .stats-card.orders { border-left-color: #0d6efd; }
+    .stats-card.revenue { border-left-color: #198754; }
+    .stats-card.users { border-left-color: #dc3545; }
+    .stats-card.pending { border-left-color: #ffc107; }
+    
+    .content-section {
+        display: none;
+    }
+    .content-section.active {
+        display: block !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <nav class="col-md-2 d-none d-md-block sidebar">
+            <div class="position-sticky">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#dashboard" data-section="dashboard-section">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#products" data-section="products-section">
+                            <i class="fas fa-box"></i> Products
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#orders" data-section="orders-section">
+                            <i class="fas fa-shopping-cart"></i> Orders
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#categories" data-section="categories-section">
+                            <i class="fas fa-tags"></i> Categories
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#suppliers" data-section="suppliers-section">
+                            <i class="fas fa-truck"></i> Suppliers
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="col-md-10 ms-sm-auto px-4">
+            <!-- Dashboard Section -->
+            <section id="dashboard-section" class="content-section active">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1>Admin Dashboard</h1>
+                    <a href="{% url 'admin_monthly_sales_report' %}" class="btn btn-primary">
+                        <i class="fas fa-chart-line"></i> Monthly Sales Report
+                    </a>
+                </div>
+
+                <!-- Quick Stats -->
+                <div class="row">
+                    <div class="col-xl-3 col-md-6">
+                        <div class="dashboard-card stats-card orders">
+                            <h4>Total Orders</h4>
+                            <h2>{{ total_orders }}</h2>
+                            <p class="mb-0">All time</p>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6">
+                        <div class="dashboard-card stats-card revenue">
+                            <h4>Revenue</h4>
+                            <h2>${{ total_revenue }}</h2>
+                            <p class="mb-0">All time</p>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6">
+                        <div class="dashboard-card stats-card users">
+                            <h4>Active Users</h4>
+                            <h2>{{ active_users }}</h2>
+                            <p class="mb-0">With orders</p>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6">
+                        <div class="dashboard-card stats-card pending">
+                            <h4>Pending Deliveries</h4>
+                            <h2>{{ pending_deliveries }}</h2>
+                            <p class="mb-0">Need attention</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Products Section -->
+            <section id="products-section" class="content-section">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1>Products</h1>
+                    <a href="{% url 'add_product' %}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Add New Product
+                    </a>
+                </div>
+
+                <!-- Search Form for Products -->
+                <div class="row mb-4">
+                    <div class="col-md-8">
+                        <div class="input-group">
+                            <input type="text" id="productSearch" class="form-control" placeholder="Search by product name...">
+                            <select id="categoryFilter" class="form-select" style="max-width: 200px;">
+                                <option value="">All Categories</option>
+                                {% for category in categories %}
+                                <option value="{{ category.name }}">{{ category.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <button class="btn btn-primary" type="button" onclick="filterProducts()">
+                                <i class="fas fa-search"></i> Search
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Category</th>
+                                <th>Supplier</th>
+                                <th>Price</th>
+                                <th>Stock</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productsTableBody">
+                            {% for product in products %}
+                            <tr class="product-row">
+                                <td>
+                                    <img src="{{ product.image.url }}" alt="{{ product.name }}" width="50" class="me-2">
+                                    <span class="product-name">{{ product.name }}</span>
+                                </td>
+                                <td class="product-category">{{ product.category.name }}</td>
+                                <td>{{ product.supplier.name|default:"N/A" }}</td>
+                                <td>${{ product.price }}</td>
+                                <td>{{ product.stock }}</td>
+                                <td>
+                                    {% if product.is_available %}
+                                    <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                    <span class="badge bg-danger">Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'edit_product' product.id %}" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button class="btn btn-sm btn-danger delete-product" data-id="{{ product.id }}" data-bs-toggle="modal" data-bs-target="#deleteProductModal">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Orders Section -->
+            <section id="orders-section" class="content-section">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1>Recent Orders</h1>
+                </div>
+
+                <!-- Search Form for Orders -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <input type="text" id="orderSearch" class="form-control" placeholder="Search by Order ID or Customer Name...">
+                            <button class="btn btn-primary" type="button" onclick="filterOrders()">
+                                <i class="fas fa-search"></i> Search
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Customer</th>
+                                <th>Date</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersTableBody">
+                            {% for order in recent_orders %}
+                            <tr class="order-row">
+                                <td class="order-id">#{{ order.id }}</td>
+                                <td class="customer-name">{{ order.user.get_full_name|default:order.user.username }}</td>
+                                <td>{{ order.created_at|date:"M d, Y" }}</td>
+                                <td>${{ order.total_amount }}</td>
+                                <td>
+                                    <select class="form-select form-select-sm order-status-select" data-order-id="{{ order.id }}">
+                                        {% for status_code, status_label in order_statuses %}
+                                        <option value="{{ status_code }}" {% if order.status == status_code %}selected{% endif %}>
+                                            {{ status_label }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </td>
+                                <td>
+                                    <a href="{% url 'admin_view_order_details' order.id %}" class="btn btn-sm btn-info">
+                                        <i class="fas fa-eye"></i> View
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Categories Section -->
+            <section id="categories-section" class="content-section">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1>Categories</h1>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+                        <i class="fas fa-plus"></i> Add New Category
+                    </button>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th>Description</th>
+                                <th>Products</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for category in categories %}
+                            <tr>
+                                <td>
+                                    {% if category.image %}
+                                    <img src="{{ category.image.url }}" alt="{{ category.name }}" width="50" class="me-2">
+                                    {% endif %}
+                                    {{ category.name }}
+                                </td>
+                                <td>{{ category.description|truncatechars:100 }}</td>
+                                <td>{{ category.products.count }}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-primary edit-category" data-id="{{ category.id }}" 
+                                            data-name="{{ category.name }}" data-description="{{ category.description }}">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-danger delete-category" data-id="{{ category.id }}">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Suppliers Section -->
+            <section id="suppliers-section" class="content-section">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1>Suppliers</h1>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Contact</th>
+                                <th>Products</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for supplier in suppliers %}
+                            <tr>
+                                <td>{{ supplier.name }}</td>
+                                <td>
+                                    <div>{{ supplier.phone }}</div>
+                                    <small class="text-muted">{{ supplier.address }}</small>
+                                </td>
+                                <td>{{ supplier.products.count }}</td>
+                                <td>
+                                    {% if supplier.is_approved %}
+                                    <span class="badge bg-success">Approved</span>
+                                    {% else %}
+                                    <span class="badge bg-warning">Pending</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-primary">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+</div>
+
+<!-- Add/Edit Category Modal -->
+<div class="modal fade" id="addCategoryModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add/Edit Category</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="categoryForm" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <input type="hidden" id="categoryId">
+                    <div class="mb-3">
+                        <label for="categoryName" class="form-label">Name</label>
+                        <input type="text" class="form-control" id="categoryName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="categoryDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="categoryDescription" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="categoryImage" class="form-label">Image</label>
+                        <input type="file" class="form-control" id="categoryImage" accept="image/*">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveCategoryBtn">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Product Modal -->
+<div class="modal fade" id="deleteProductModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete Product</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this product?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="deleteProductBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Navigation
+    const navLinks = document.querySelectorAll('.sidebar .nav-link');
+    const contentSections = document.querySelectorAll('.content-section');
+
+    function showSection(sectionId) {
+        contentSections.forEach(section => {
+            section.classList.remove('active');
+        });
+        navLinks.forEach(link => {
+            link.classList.remove('active');
+        });
+
+        const targetSection = document.getElementById(sectionId);
+        const targetLink = document.querySelector(`[data-section="${sectionId}"]`);
+
+        if (targetSection && targetLink) {
+            targetSection.classList.add('active');
+            targetLink.classList.add('active');
+        }
+    }
+
+    navLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const sectionId = this.getAttribute('data-section');
+            showSection(sectionId);
+            window.location.hash = sectionId;
+        });
+    });
+
+    // Show initial section based on URL hash or default to dashboard
+    const hash = window.location.hash.slice(1) || 'dashboard-section';
+    showSection(hash);
+
+    // Category Modal
+    const categoryModal = new bootstrap.Modal(document.getElementById('addCategoryModal'));
+    
+    // Add Category
+    document.querySelector('[data-bs-target="#addCategoryModal"]').addEventListener('click', function() {
+        document.getElementById('categoryId').value = '';
+        document.getElementById('categoryForm').reset();
+        document.querySelector('.modal-title').textContent = 'Add New Category';
+    });
+
+    // Edit Category
+    document.querySelectorAll('.edit-category').forEach(button => {
+        button.addEventListener('click', function() {
+            const id = this.dataset.id;
+            const name = this.dataset.name;
+            const description = this.dataset.description;
+            
+            document.getElementById('categoryId').value = id;
+            document.getElementById('categoryName').value = name;
+            document.getElementById('categoryDescription').value = description;
+            document.querySelector('.modal-title').textContent = 'Edit Category';
+            
+            categoryModal.show();
+        });
+    });
+
+    // Save Category
+    document.getElementById('saveCategoryBtn').addEventListener('click', function() {
+        const formData = new FormData();
+        const categoryId = document.getElementById('categoryId').value;
+        
+        formData.append('name', document.getElementById('categoryName').value);
+        formData.append('description', document.getElementById('categoryDescription').value);
+        formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+        
+        const imageFile = document.getElementById('categoryImage').files[0];
+        if (imageFile) {
+            formData.append('image', imageFile);
+        }
+        
+        const url = categoryId ? 
+            `{% url 'edit_category' 0 %}`.replace('0', categoryId) : 
+            "{% url 'add_category' %}";
+        
+        fetch(url, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                window.location.reload();
+            } else {
+                alert('Error: ' + JSON.stringify(data.errors));
+            }
+        })
+        .catch(error => {
+            alert('Error: ' + error);
+        });
+    });
+
+    // Delete Category
+    document.querySelectorAll('.delete-category').forEach(button => {
+        button.addEventListener('click', function() {
+            if (confirm('Are you sure you want to delete this category?')) {
+                const categoryId = this.dataset.id;
+                const url = `{% url 'delete_category' 0 %}`.replace('0', categoryId);
+                
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        window.location.reload();
+                    } else {
+                        alert('Error deleting category: ' + data.errors);
+                    }
+                })
+                .catch(error => {
+                    alert('Error: ' + error);
+                });
+            }
+        });
+    });
+
+    // Delete Product
+    document.querySelectorAll('.delete-product').forEach(button => {
+        button.addEventListener('click', function() {
+            const productId = this.dataset.id;
+            const deleteProductModal = new bootstrap.Modal(document.getElementById('deleteProductModal'));
+            deleteProductModal.show();
+            
+            document.getElementById('deleteProductBtn').addEventListener('click', function() {
+                const url = `{% url 'delete_product' 0 %}`.replace('0', productId);
+                
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        window.location.reload();
+                    } else {
+                        alert('Error deleting product: ' + data.errors);
+                    }
+                })
+                .catch(error => {
+                    alert('Error: ' + error);
+                });
+            });
+        });
+    });
+
+    // Update Order Status
+    document.querySelectorAll('.order-status-select').forEach(select => {
+        select.addEventListener('change', function() {
+            const orderId = this.dataset.orderId;
+            const newStatus = this.value;
+            
+            fetch(`/update-order-status/${orderId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: `status=${newStatus}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status !== 'success') {
+                    alert('Error updating order status');
+                }
+            })
+            .catch(() => {
+                alert('Error updating order status');
+            });
+        });
+    });
+
+    // Filter Products
+    function filterProducts() {
+        const searchQuery = document.getElementById('productSearch').value.toLowerCase();
+        const categoryFilter = document.getElementById('categoryFilter').value;
+        const productsTableBody = document.getElementById('productsTableBody');
+        const productRows = productsTableBody.querySelectorAll('.product-row');
+
+        productRows.forEach(row => {
+            const productName = row.querySelector('.product-name').textContent.toLowerCase();
+            const productCategory = row.querySelector('.product-category').textContent;
+
+            if ((searchQuery === '' || productName.includes(searchQuery)) && (categoryFilter === '' || productCategory === categoryFilter)) {
+                row.style.display = 'table-row';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+
+    // Filter Orders
+    function filterOrders() {
+        const searchQuery = document.getElementById('orderSearch').value.toLowerCase();
+        const ordersTableBody = document.getElementById('ordersTableBody');
+        const orderRows = ordersTableBody.querySelectorAll('.order-row');
+
+        orderRows.forEach(row => {
+            const orderId = row.querySelector('.order-id').textContent.toLowerCase();
+            const customerName = row.querySelector('.customer-name').textContent.toLowerCase();
+
+            if ((searchQuery === '' || orderId.includes(searchQuery) || customerName.includes(searchQuery))) {
+                row.style.display = 'table-row';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

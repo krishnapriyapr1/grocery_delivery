@@ -1,0 +1,152 @@
+{% extends 'store/base.html' %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block title %}Create Account - Fresh Mart{% endblock %}
+
+{% block extra_css %}
+<style>
+    .auth-container {
+        min-height: calc(100vh - 76px);
+        background-color: #f8f9fa;
+        padding: 3rem 0;
+    }
+    
+    .auth-card {
+        background: white;
+        border: none;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 0 40px rgba(0,0,0,0.1);
+    }
+    
+    .auth-image {
+        background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), 
+                    url('{% static "images/auth/register-bg.jpg" %}') center/cover;
+        min-height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        text-align: center;
+        padding: 2rem;
+    }
+    
+    .auth-image h2 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+    
+    .auth-image p {
+        font-size: 1.1rem;
+        max-width: 400px;
+        margin: 0 auto;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+    }
+    
+    .auth-form {
+        padding: 2rem;
+    }
+    
+    .auth-form h3 {
+        color: #333;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-section {
+        background: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .section-title {
+        font-size: 1.2rem;
+        color: #00b761;
+        margin-bottom: 1rem;
+        font-weight: 600;
+    }
+    
+    .form-control {
+        border-radius: 8px;
+        padding: 0.8rem 1rem;
+        border: 1px solid #e1e1e1;
+    }
+    
+    .form-control:focus {
+        border-color: #00b761;
+        box-shadow: 0 0 0 0.2rem rgba(0, 183, 97, 0.25);
+    }
+    
+    .btn-auth {
+        background-color: #00b761;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.8rem 2rem;
+        font-size: 1rem;
+        font-weight: 500;
+        width: 100%;
+        margin-top: 1rem;
+        transition: all 0.3s;
+    }
+    
+    .btn-auth:hover {
+        background-color: #009951;
+        transform: translateY(-2px);
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="auth-card">
+                    <div class="row g-0">
+                        <div class="col-md-6">
+                            <div class="auth-image">
+                                <div>
+                                    <h2>Join Fresh Mart</h2>
+                                    <p>Create your account and start enjoying fresh, high-quality groceries delivered right to your doorstep.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="auth-form">
+                                <h3>Create Your Account</h3>
+                                <form method="post" novalidate>
+                                    {% csrf_token %}
+                                    {% if form.errors %}
+                                    <div class="alert alert-danger">
+                                        <strong>Please correct the following errors:</strong>
+                                        {{ form.errors }}
+                                    </div>
+                                    {% endif %}
+                                    <div class="form-section">
+                                        <div class="section-title">
+                                            <i class="fas fa-user me-2"></i> Account Information
+                                        </div>
+                                        {{ form|crispy }}
+                                    </div>
+                                    <button type="submit" class="btn btn-auth">
+                                        <i class="fas fa-user-plus me-2"></i> Create Account
+                                    </button>
+                                </form>
+                                <div class="text-center mt-3">
+                                    Already have an account? <a href="{% url 'login' %}" class="text-success">Sign In</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

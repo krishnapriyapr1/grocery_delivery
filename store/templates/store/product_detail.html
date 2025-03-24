@@ -1,0 +1,210 @@
+{% extends 'store/base.html' %}
+{% load static %}
+
+{% block title %}{{ product.name }} - Fresh Mart{% endblock %}
+
+{% block extra_css %}
+<style>
+    .product-container {
+        padding: 3rem 0;
+        background-color: #f8f9fa;
+        min-height: calc(100vh - 76px);
+    }
+    
+    .product-image {
+        width: 100%;
+        height: 400px;
+        object-fit: cover;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+    
+    .product-info {
+        padding: 2rem;
+    }
+    
+    .product-title {
+        font-size: 2rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 1rem;
+    }
+    
+    .product-price {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #00b761;
+        margin-bottom: 1.5rem;
+    }
+    
+    .product-description {
+        color: #6c757d;
+        margin-bottom: 2rem;
+        line-height: 1.6;
+    }
+    
+    .quantity-control {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .quantity-label {
+        font-weight: 500;
+        color: #2c3e50;
+    }
+    
+    .quantity-input {
+        width: 80px;
+        text-align: center;
+        padding: 0.5rem;
+        border: 1px solid #e1e1e1;
+        border-radius: 8px;
+    }
+    
+    .add-to-cart-btn {
+        background: #00b761;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 1rem 2rem;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s;
+    }
+    
+    .add-to-cart-btn:hover {
+        background: #009951;
+        transform: translateY(-2px);
+    }
+    
+    .product-meta {
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid #e1e1e1;
+    }
+    
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+        color: #6c757d;
+    }
+    
+    .meta-item i {
+        color: #00b761;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="product-container">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-6">
+                <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-image">
+            </div>
+            <div class="col-lg-6">
+                <div class="product-info">
+                    <h1 class="product-title">{{ product.name }}</h1>
+                    <div class="product-price mb-4">
+                        <h3 class="text-success">${{ product.price }}</h3>
+                    </div>
+                    
+                    {% if user.is_authenticated %}
+                        <form id="add-to-cart-form" action="{% url 'add_to_cart_ajax' %}" method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="product_id" value="{{ product.id }}">
+                            <div class="d-flex align-items-center mb-3">
+                                <label for="quantity" class="me-3">Quantity:</label>
+                                <input type="number" name="quantity" id="quantity" value="1" min="1" class="form-control" style="width: 100px;">
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-lg w-100">
+                                <i class="fas fa-shopping-cart me-2"></i>Add to Cart
+                            </button>
+                        </form>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="btn btn-primary btn-lg w-100">
+                            <i class="fas fa-shopping-cart me-2"></i>Add to Cart
+                        </a>
+                    {% endif %}
+                    
+                    <div class="product-description">{{ product.description }}</div>
+                    
+                    <div class="product-meta">
+                        <div class="meta-item">
+                            <i class="fas fa-box"></i>
+                            <span>Category: {{ product.category.name }}</span>
+                        </div>
+                        {% if product.stock > 0 %}
+                            <div class="meta-item">
+                                <i class="fas fa-check-circle"></i>
+                                <span>In Stock</span>
+                            </div>
+                        {% else %}
+                            <div class="meta-item">
+                                <i class="fas fa-times-circle"></i>
+                                <span>Out of Stock</span>
+                            </div>
+                        {% endif %}
+                        <div class="meta-item">
+                            <i class="fas fa-truck"></i>
+                            <span>Free Shipping</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('add-to-cart-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const form = this;
+    const formData = new FormData(form);
+    
+    fetch(form.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Show success message
+            const toast = document.createElement('div');
+            toast.className = 'toast position-fixed bottom-0 end-0 m-3';
+            toast.setAttribute('role', 'alert');
+            toast.setAttribute('aria-live', 'assertive');
+            toast.setAttribute('aria-atomic', 'true');
+            toast.innerHTML = `
+                <div class="toast-header bg-success text-white">
+                    <i class="fas fa-check-circle me-2"></i>
+                    <strong class="me-auto">Success</strong>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+                <div class="toast-body">
+                    Item added to cart successfully!
+                </div>
+            `;
+            document.body.appendChild(toast);
+            const bsToast = new bootstrap.Toast(toast);
+            bsToast.show();
+            
+            // Optional: Update cart count in navbar if you have one
+            // updateCartCount();
+        }
+    });
+});
+</script>
+{% endblock %}

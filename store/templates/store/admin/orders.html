@@ -1,0 +1,83 @@
+{% extends 'store/admin/base_admin.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <main class="col-md-12 ms-sm-auto px-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1>Orders Management</h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <div class="dropdown">
+                        <select class="form-select" id="statusFilter">
+                            <option value="all" {% if not status %}selected{% endif %}>All Status</option>
+                            <option value="pending" {% if status == 'pending' %}selected{% endif %}>Pending</option>
+                            <option value="processing" {% if status == 'processing' %}selected{% endif %}>Processing</option>
+                            <option value="shipped" {% if status == 'shipped' %}selected{% endif %}>Shipped</option>
+                            <option value="delivered" {% if status == 'delivered' %}selected{% endif %}>Delivered</option>
+                            <option value="cancelled" {% if status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Customer</th>
+                            <th>Date</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in orders %}
+                        <tr>
+                            <td>#{{ order.id }}</td>
+                            <td>{{ order.user.get_full_name|default:order.user.username }}</td>
+                            <td>{{ order.created_at|date:"M d, Y H:i" }}</td>
+                            <td>₹{{ order.total_amount }}</td>
+                            <td>
+                                <span class="badge {% if order.status == 'pending' %}bg-warning
+                                    {% elif order.status == 'processing' %}bg-info
+                                    {% elif order.status == 'shipped' %}bg-primary
+                                    {% elif order.status == 'delivered' %}bg-success
+                                    {% else %}bg-danger{% endif %}">
+                                    {{ order.status|title }}
+                                </span>
+                            </td>
+                            <td>
+                                <a href="{% url 'admin_view_order_details' order.id %}" class="btn btn-info btn-sm">
+                                    <i class="fas fa-eye"></i> View Details
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center">No orders found</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.getElementById('statusFilter').addEventListener('change', function() {
+        const status = this.value;
+        if (status === 'all') {
+            window.location.href = "{% url 'admin_orders' %}";
+        } else {
+            window.location.href = "{% url 'admin_orders' %}?status=" + status;
+        }
+    });
+</script>
+{% endblock %}

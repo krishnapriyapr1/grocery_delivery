@@ -1,0 +1,138 @@
+{% extends 'store/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Payment Details</h3>
+                </div>
+                <div class="card-body">
+                    <h4>Total Amount: ₹{{ total|floatformat:2 }}</h4>
+                    <form id="payment-form">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <div id="card-element" class="form-control"></div>
+                            <div id="card-errors" class="text-danger mt-2"></div>
+                        </div>
+                        <button id="submit-button" class="btn btn-primary mt-3 w-100">
+                            <span id="button-text">Pay Now</span>
+                            <span id="spinner" class="spinner-border spinner-border-sm ms-2 d-none" role="status" aria-hidden="true"></span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+    // Initialize Stripe with the correct key
+    const stripe = Stripe('{{ stripe_publishable_key }}');
+    const elements = stripe.elements();
+    
+    // Create card Element
+    const card = elements.create('card', {
+        style: {
+            base: {
+                color: '#32325d',
+                fontFamily: '"Helvetica Neue", Helvetica, sans-serif',
+                fontSmoothing: 'antialiased',
+                fontSize: '16px',
+                '::placeholder': {
+                    color: '#aab7c4'
+                }
+            },
+            invalid: {
+                color: '#fa755a',
+                iconColor: '#fa755a'
+            }
+        }
+    });
+    
+    // Mount the card Element
+    card.mount('#card-element');
+    
+    // Handle real-time validation errors
+    card.addEventListener('change', function(event) {
+        const displayError = document.getElementById('card-errors');
+        if (event.error) {
+            displayError.textContent = event.error.message;
+        } else {
+            displayError.textContent = '';
+        }
+    });
+    
+    // Handle form submission
+    const form = document.getElementById('payment-form');
+    const submitButton = document.getElementById('submit-button');
+    const spinner = document.getElementById('spinner');
+    const buttonText = document.getElementById('button-text');
+    
+    form.addEventListener('submit', async function(event) {
+        event.preventDefault();
+        
+        // Disable form submission and show spinner
+        submitButton.disabled = true;
+        spinner.classList.remove('d-none');
+        buttonText.textContent = 'Processing...';
+        
+        try {
+            // Create a token
+            const result = await stripe.createToken(card);
+            
+            if (result.error) {
+                // Handle errors
+                const errorElement = document.getElementById('card-errors');
+                errorElement.textContent = result.error.message;
+                
+                // Re-enable form submission
+                submitButton.disabled = false;
+                spinner.classList.add('d-none');
+                buttonText.textContent = 'Pay Now';
+            } else {
+                // Send token to server
+                const response = await fetch('{% url "process_payment" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({
+                        token: result.token.id,
+                        amount: '{{ total }}'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    window.location.href = data.redirect_url;
+                } else {
+                    // Show error message
+                    const errorElement = document.getElementById('card-errors');
+                    errorElement.textContent = data.error || 'An error occurred. Please try again.';
+                    
+                    // Re-enable form submission
+                    submitButton.disabled = false;
+                    spinner.classList.add('d-none');
+                    buttonText.textContent = 'Pay Now';
+                }
+            }
+        } catch (error) {
+            console.error('Payment error:', error);
+            // Show error message
+            const errorElement = document.getElementById('card-errors');
+            errorElement.textContent = 'An error occurred. Please try again.';
+            
+            // Re-enable form submission
+            submitButton.disabled = false;
+            spinner.classList.add('d-none');
+            buttonText.textContent = 'Pay Now';
+        }
+    });
+</script>
+{% endblock %}

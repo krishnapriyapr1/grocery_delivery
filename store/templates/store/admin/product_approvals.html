@@ -1,0 +1,137 @@
+{% extends 'store/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="h3 mb-4 text-gray-800">Product Approvals</h1>
+            
+            <!-- Stats Cards -->
+            <div class="row mb-4">
+                <!-- Pending Products Card -->
+                <div class="col-xl-4 col-md-6 mb-4">
+                    <div class="card border-left-warning shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                        Pending Approvals</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ pending_products.count }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-clock fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Approved Products Card -->
+                <div class="col-xl-4 col-md-6 mb-4">
+                    <div class="card border-left-success shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                        Approved Products</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ approved_count }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-check fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rejected Products Card -->
+                <div class="col-xl-4 col-md-6 mb-4">
+                    <div class="card border-left-danger shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                        Rejected Products</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ rejected_count }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-times fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pending Products Table -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Pending Products</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Category</th>
+                                    <th>Supplier</th>
+                                    <th>Price</th>
+                                    <th>Stock</th>
+                                    <th>Created At</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for product in pending_products %}
+                                <tr>
+                                    <td>
+                                        <img src="{{ product.image.url }}" alt="{{ product.name }}" class="img-thumbnail" style="width: 50px; height: 50px; object-fit: cover;">
+                                        {{ product.name }}
+                                    </td>
+                                    <td>{{ product.category.name }}</td>
+                                    <td>{{ product.supplier.user.username }}</td>
+                                    <td>${{ product.price }}</td>
+                                    <td>{{ product.stock }}</td>
+                                    <td>{{ product.created_at|date:"M d, Y" }}</td>
+                                    <td>
+                                        <form action="{% url 'update_product_approval' product.id %}" method="POST" class="d-inline">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="status" value="approved">
+                                            <button type="submit" class="btn btn-success btn-sm">
+                                                <i class="fas fa-check"></i> Approve
+                                            </button>
+                                        </form>
+                                        <form action="{% url 'update_product_approval' product.id %}" method="POST" class="d-inline">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="status" value="rejected">
+                                            <button type="submit" class="btn btn-danger btn-sm">
+                                                <i class="fas fa-times"></i> Reject
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center">No pending products to approve</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Initialize DataTables
+    $(document).ready(function() {
+        $('#dataTable').DataTable();
+    });
+</script>
+{% endblock %}

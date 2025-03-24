@@ -1,0 +1,259 @@
+{% load static %}
+
+<div class="product-card">
+    <div class="product-image-wrapper">
+        {% if product.image %}
+            <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-image">
+        {% else %}
+            <img src="{% static 'images/no-image.png' %}" alt="{{ product.name }}" class="product-image">
+        {% endif %}
+        {% if product.discount_price %}
+            <div class="product-badge">SALE</div>
+        {% endif %}
+    </div>
+    <div class="product-info">
+        <div class="product-category">{{ product.category.name }}</div>
+        <h3 class="product-name">{{ product.name }}</h3>
+        <p class="product-description">{{ product.description|truncatechars:80 }}</p>
+        <div class="product-meta">
+            <div class="product-price-wrapper">
+                {% if product.discount_price %}
+                    <span class="product-price discounted">${{ product.price }}</span>
+                    <span class="product-price">${{ product.discount_price }}</span>
+                {% else %}
+                    <span class="product-price">${{ product.price }}</span>
+                {% endif %}
+                {% if product.unit %}
+                    <span class="product-unit">/ {{ product.unit }}</span>
+                {% endif %}
+            </div>
+            {% if product.stock > 0 %}
+                <div class="product-stock in-stock">
+                    <i class="fas fa-check-circle"></i> In Stock
+                </div>
+            {% else %}
+                <div class="product-stock out-of-stock">
+                    <i class="fas fa-times-circle"></i> Out of Stock
+                </div>
+            {% endif %}
+        </div>
+        <div class="product-actions">
+            <a href="{% url 'product_detail' product.id %}" class="btn btn-outline-primary view-details-btn">
+                <i class="fas fa-eye"></i>
+                <span>View Details</span>
+            </a>
+            {% if user.is_authenticated %}
+                <form action="{% url 'add_to_cart_ajax' %}" method="POST" class="add-to-cart-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="product_id" value="{{ product.id }}">
+                    <input type="hidden" name="quantity" value="1">
+                    <button type="submit" class="btn btn-success add-to-cart-btn" {% if not product.stock > 0 %}disabled{% endif %}>
+                        <i class="fas fa-shopping-cart"></i>
+                        <span>Add to Cart</span>
+                    </button>
+                </form>
+            {% else %}
+                <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-success add-to-cart-btn">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span>Add to Cart</span>
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.product-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #eee;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+}
+
+.product-image-wrapper {
+    position: relative;
+    padding-top: 75%;
+    overflow: hidden;
+    background: #f8f9fa;
+}
+
+.product-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.product-card:hover .product-image {
+    transform: scale(1.05);
+}
+
+.product-badge {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: #ff4757;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.product-info {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    background: white;
+}
+
+.product-category {
+    color: #636e72;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.product-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2d3436;
+    margin-bottom: 0.5rem;
+    line-height: 1.4;
+}
+
+.product-description {
+    color: #636e72;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+    line-height: 1.5;
+}
+
+.product-meta {
+    margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.product-price-wrapper {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.product-price {
+    color: #00b761;
+    font-weight: 600;
+    font-size: 1.25rem;
+}
+
+.product-price.discounted {
+    color: #636e72;
+    text-decoration: line-through;
+    font-size: 1rem;
+    font-weight: normal;
+}
+
+.product-unit {
+    color: #636e72;
+    font-size: 0.9rem;
+}
+
+.product-stock {
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.product-stock.in-stock {
+    color: #00b761;
+}
+
+.product-stock.out-of-stock {
+    color: #ff4757;
+}
+
+.product-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: auto;
+}
+
+.product-actions .btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    font-size: 0.9rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.view-details-btn {
+    border-color: #00b761;
+    color: #00b761;
+}
+
+.view-details-btn:hover {
+    background: #00b761;
+    color: white;
+    border-color: #00b761;
+}
+
+.add-to-cart-btn {
+    background: #00b761;
+    border-color: #00b761;
+}
+
+.add-to-cart-btn:hover:not(:disabled) {
+    background: #009951;
+    border-color: #009951;
+    transform: translateY(-2px);
+}
+
+.add-to-cart-btn:disabled {
+    background: #636e72;
+    border-color: #636e72;
+    cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+    .product-actions {
+        grid-template-columns: 1fr;
+    }
+
+    .product-name {
+        font-size: 1rem;
+    }
+
+    .product-price {
+        font-size: 1.1rem;
+    }
+
+    .product-description {
+        display: none;
+    }
+
+    .product-image-wrapper {
+        padding-top: 100%;
+    }
+}
+</style>

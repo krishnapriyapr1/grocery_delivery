@@ -1,0 +1,78 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - master  # Adjust this to your main branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Step 1: Checkout the code from the repository
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    # Step 2: Deploy to EC2
+    - name: Deploy to EC2
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: "ubuntu"
+        key: ${{ secrets.EC2_SSH_KEY }}
+        script: |
+          # Update and install python3-venv
+          sudo apt update
+          sudo apt install -y python3-venv
+
+          # Navigate to the project directory
+          cd /home/ubuntu/grocery_delivery
+
+          # Check available disk space
+          df -h
+
+          # Remove old code, including hidden files
+          rm -rf .[^.]* *
+
+          # Ensure the directory is owned by the correct user
+          sudo chown -R ubuntu:ubuntu /home/ubuntu/grocery_delivery
+
+          # Pull the latest code from the repository
+          git clone https://github.com/N-JK/kp.git .
+
+          # Debug: List files in the directory to verify contents
+          echo "Listing files after clone:"
+          ls -la
+
+          # Create and activate the virtual environment
+          python3 -m venv venv
+          source venv/bin/activate
+
+          # Debug: Verify Python and pip versions
+          echo "Python version:"
+          python3 --version
+          echo "Pip version:"
+          pip --version
+
+          # Install dependencies
+          if [ -f "requirements.txt" ]; then
+            pip install -r requirements.txt
+          else
+            echo "Error: requirements.txt not found!"
+            exit 1
+          fi
+
+          # Apply database migrations
+          if [ -f "manage.py" ]; then
+            python3 manage.py migrate
+          else
+            echo "Error: manage.py not found!"
+            exit 1
+          fi
+
+          # Collect static files
+          python3 manage.py collectstatic --noinput
+
+          # Start the Django development server
+          nohup python3 manage.py runserver 0.0.0.0:8000 > /dev/null 2>&1 &

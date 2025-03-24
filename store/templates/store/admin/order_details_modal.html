@@ -1,0 +1,222 @@
+<!-- Order Information -->
+<div class="row">
+    <div class="col-md-6">
+        <h5><i class="fas fa-info-circle"></i> Order Information</h5>
+        <table class="table table-borderless">
+            <tr>
+                <th style="width: 150px;">Order Date:</th>
+                <td>{{ order.created_at|date:"M d, Y H:i" }}</td>
+            </tr>
+            <tr>
+                <th>Status:</th>
+                <td>
+                    <span class="badge {% if order.status == 'pending' %}bg-warning
+                        {% elif order.status == 'processing' %}bg-info
+                        {% elif order.status == 'shipped' %}bg-primary
+                        {% elif order.status == 'delivered' %}bg-success
+                        {% else %}bg-danger{% endif %}">
+                        {{ order.status|title }}
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <th>Total Amount:</th>
+                <td>${{ order.total_amount|floatformat:2 }}</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="col-md-6">
+        <h5><i class="fas fa-user"></i> Customer Information</h5>
+        <table class="table table-borderless">
+            <tr>
+                <th style="width: 150px;">Name:</th>
+                <td>{{ order.user.get_full_name|default:order.user.username }}</td>
+            </tr>
+            <tr>
+                <th>Email:</th>
+                <td>{{ order.user.email }}</td>
+            </tr>
+            <tr>
+                <th>Phone:</th>
+                <td>{{ order.user.userprofile.phone|default:"Not provided" }}</td>
+            </tr>
+            <tr>
+                <th>Address:</th>
+                <td>{{ order.shipping_address|linebreaksbr }}</td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<!-- Order Items -->
+<div class="table-responsive mt-4">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th>Price</th>
+                <th>Quantity</th>
+                <th>Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in order_items %}
+            <tr>
+                <td>
+                    <div class="d-flex align-items-center">
+                        {% if item.product.image %}
+                        <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" 
+                             style="width: 40px; height: 40px; object-fit: cover;" class="me-2">
+                        {% endif %}
+                        {{ item.product.name }}
+                    </div>
+                </td>
+                <td>${{ item.price|floatformat:2 }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>${{ item.get_total|floatformat:2 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot class="table-light">
+            <tr>
+                <td colspan="3" class="text-end"><strong>Total:</strong></td>
+                <td><strong>${{ order.total_amount|floatformat:2 }}</strong></td>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+
+<!-- Delivery Assignment Section -->
+<div class="mt-4">
+    <h5><i class="fas fa-truck"></i> Delivery Assignment</h5>
+    {% if order.delivery_assignment %}
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <h6 class="mb-1">Delivery Partner: {{ order.delivery_assignment.delivery_boy.name }}</h6>
+                        <p class="mb-0 text-muted">
+                            <small>Assigned on: {{ order.delivery_assignment.assigned_at|date:"M d, Y H:i" }}</small>
+                        </p>
+                        <span class="badge {% if order.delivery_assignment.status == 'assigned' %}bg-info
+                                     {% elif order.delivery_assignment.status == 'picked_up' %}bg-primary
+                                     {% elif order.delivery_assignment.status == 'in_transit' %}bg-warning
+                                     {% elif order.delivery_assignment.status == 'delivered' %}bg-success
+                                     {% endif %} mt-2">
+                            {{ order.delivery_assignment.get_status_display }}
+                        </span>
+                    </div>
+                    <a href="{% url 'delivery_boy_performance' order.delivery_assignment.delivery_boy.id %}" 
+                       class="btn btn-sm btn-info">
+                        <i class="fas fa-chart-line me-1"></i> View Performance
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        {% if order.status != 'cancelled' %}
+        <div class="card">
+            <div class="card-body">
+                <form id="assignDeliveryForm-{{ order.id }}" class="row g-3 align-items-end">
+                    <input type="hidden" name="order_id" value="{{ order.id }}">
+                    <div class="col-md-8">
+                        <label for="deliveryBoySelect-{{ order.id }}" class="form-label">Select Delivery Partner</label>
+                        <select class="form-select" id="deliveryBoySelect-{{ order.id }}" name="delivery_boy_id" required>
+                            <option value="">Choose...</option>
+                            {% for delivery_boy in delivery_boys %}
+                                {% if delivery_boy.is_approved and delivery_boy.is_available %}
+                                <option value="{{ delivery_boy.id }}">
+                                    {{ delivery_boy.name }} ({{ delivery_boy.total_deliveries }} deliveries)
+                                </option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <button type="button" class="btn btn-primary w-100" onclick="assignDelivery({{ order.id }})">
+                            <i class="fas fa-user-plus me-1"></i> Assign Delivery
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% else %}
+        <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle me-2"></i> Cannot assign delivery for cancelled orders
+        </div>
+        {% endif %}
+    {% endif %}
+</div>
+
+<!-- Update Status -->
+<div class="mt-4">
+    <h5><i class="fas fa-tasks"></i> Update Order Status</h5>
+    <div class="btn-group">
+        {% if order.status != 'processing' %}
+        <button class="btn btn-info btn-sm" onclick="updateOrderStatus('{{ order.id }}', 'processing')">
+            Mark Processing
+        </button>
+        {% endif %}
+        {% if order.status != 'shipped' %}
+        <button class="btn btn-primary btn-sm" onclick="updateOrderStatus('{{ order.id }}', 'shipped')">
+            Mark Shipped
+        </button>
+        {% endif %}
+        {% if order.status != 'delivered' %}
+        <button class="btn btn-success btn-sm" onclick="updateOrderStatus('{{ order.id }}', 'delivered')">
+            Mark Delivered
+        </button>
+        {% endif %}
+        {% if order.status != 'cancelled' %}
+        <button class="btn btn-danger btn-sm" onclick="updateOrderStatus('{{ order.id }}', 'cancelled')">
+            Cancel Order
+        </button>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function assignDelivery(orderId) {
+    const form = document.getElementById(`assignDeliveryForm-${orderId}`);
+    const formData = new FormData(form);
+
+    fetch('{% url "assign_delivery" %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Refresh the order details modal
+            viewOrderDetails(orderId);
+            // Also refresh the orders table
+            location.reload();
+        } else {
+            alert(data.error || 'Failed to assign delivery partner');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while assigning the delivery partner');
+    });
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>

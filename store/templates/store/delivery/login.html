@@ -1,0 +1,133 @@
+{% extends 'store/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="row g-0">
+        <div class="col-12">
+            <div class="login-container">
+                <div class="login-box">
+                    <div class="login-header">
+                        <h2><i class="fas fa-motorcycle"></i> Delivery Login</h2>
+                    </div>
+                    <div class="login-body">
+                        <form method="POST" class="login-form">
+                            {% csrf_token %}
+                            <div class="form-group mb-3">
+                                <div class="input-group">
+                                    <span class="input-group-text bg-primary text-white">
+                                        <i class="fas fa-user"></i>
+                                    </span>
+                                    <input type="text" name="username" class="form-control" placeholder="Username" required>
+                                </div>
+                            </div>
+                            <div class="form-group mb-4">
+                                <div class="input-group">
+                                    <span class="input-group-text bg-primary text-white">
+                                        <i class="fas fa-lock"></i>
+                                    </span>
+                                    <input type="password" name="password" class="form-control" placeholder="Password" required>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100 mb-3">
+                                <i class="fas fa-sign-in-alt me-2"></i>Login
+                            </button>
+                        </form>
+                        <div class="text-center mt-3">
+                            <p class="mb-0">New delivery person? <a href="{% url 'delivery_register' %}" class="text-primary">Register here</a></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.login-container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0061f2 0%, #00c6f9 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+}
+
+.login-box {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 15px;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.1);
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 400px;
+    position: relative;
+    backdrop-filter: blur(10px);
+}
+
+.login-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.login-header h2 {
+    color: #0061f2;
+    font-size: 1.75rem;
+    font-weight: 600;
+}
+
+.login-header h2 i {
+    margin-right: 10px;
+}
+
+.input-group-text {
+    border: none;
+    padding: 0.75rem 1rem;
+}
+
+.form-control {
+    border: 1px solid #e0e0e0;
+    padding: 0.75rem;
+    font-size: 1rem;
+}
+
+.form-control:focus {
+    border-color: #0061f2;
+    box-shadow: 0 0 0 0.2rem rgba(0, 97, 242, 0.25);
+}
+
+.btn-primary {
+    background: #0061f2;
+    border: none;
+    padding: 0.75rem;
+    font-size: 1rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background: #0056d6;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 97, 242, 0.2);
+}
+
+.text-primary {
+    color: #0061f2 !important;
+    text-decoration: none;
+}
+
+.text-primary:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 576px) {
+    .login-box {
+        padding: 2rem;
+    }
+    
+    .login-header h2 {
+        font-size: 1.5rem;
+    }
+}
+</style>
+{% endblock %}

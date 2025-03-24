@@ -1,0 +1,113 @@
+{% extends 'store/base_delivery.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>Welcome, {{ request.user.get_full_name }}</h2>
+                <button class="btn btn-danger" id="goOfflineBtn">Go Offline</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <h3 class="display-4">{{ pending_orders }}</h3>
+                    <h6 class="card-title">Pending Orders</h6>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body text-center">
+                    <h3 class="display-4">{{ active_orders }}</h3>
+                    <h6 class="card-title">Active Orders</h6>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <h3 class="display-4">{{ completed_orders }}</h3>
+                    <h6 class="card-title">Completed Orders</h6>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body text-center">
+                    <h3 class="display-4">{{ unread_messages }}</h3>
+                    <h6 class="card-title">Unread Messages</h6>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">Recent Deliveries</h5>
+        </div>
+        <div class="card-body">
+            {% if recent_deliveries %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Customer</th>
+                                <th>Address</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for delivery in recent_deliveries %}
+                            <tr>
+                                <td>#{{ delivery.order.id }}</td>
+                                <td>{{ delivery.order.user.get_full_name }}</td>
+                                <td>{{ delivery.order.shipping_address }}</td>
+                                <td>
+                                    <span class="badge {% if delivery.status == 'pending' %}bg-warning
+                                                      {% elif delivery.status == 'in_progress' %}bg-info
+                                                      {% elif delivery.status == 'completed' %}bg-success
+                                                      {% endif %}">
+                                        {{ delivery.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-primary" onclick="updateStatus('{{ delivery.id }}')">
+                                        Update Status
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No Recent Deliveries</h5>
+                    <p class="text-muted">You don't have any delivery assignments yet.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function updateStatus(deliveryId) {
+        // Add your status update logic here
+    }
+
+    document.getElementById('goOfflineBtn').addEventListener('click', function() {
+        // Add your go offline logic here
+    });
+</script>
+{% endblock %}

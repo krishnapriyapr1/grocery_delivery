@@ -1,0 +1,286 @@
+{% extends 'store/base.html' %}
+{% load static %}
+
+{% block title %}All Products - Fresh Mart{% endblock %}
+
+{% block extra_css %}
+<style>
+    .products-header {
+        background: linear-gradient(135deg, #00b761 0%, #008a49 100%);
+        padding: 4rem 0;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .products-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath opacity='.5' d='M96 95h4v1h-4v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9zm-1 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9z'/%3E%3Cpath d='M6 5V0H5v5H0v1h5v94h1V6h94V5H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+
+    .header-content {
+        position: relative;
+        z-index: 1;
+        text-align: center;
+    }
+
+    .products-title {
+        color: white;
+        font-size: 3rem;
+        font-weight: 700;
+        margin: 0 0 1rem;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .header-subtitle {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 1.2rem;
+        margin: 0;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .floating-icons {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        pointer-events: none;
+    }
+
+    .floating-icon {
+        position: absolute;
+        opacity: 0.1;
+        animation: float 6s ease-in-out infinite;
+    }
+
+    .icon-1 { top: 20%; left: 10%; animation-delay: 0s; }
+    .icon-2 { top: 60%; left: 15%; animation-delay: -1s; }
+    .icon-3 { top: 25%; right: 15%; animation-delay: -2s; }
+    .icon-4 { top: 55%; right: 10%; animation-delay: -3s; }
+
+    @keyframes float {
+        0%, 100% {
+            transform: translateY(0) rotate(0deg);
+        }
+        50% {
+            transform: translateY(-20px) rotate(5deg);
+        }
+    }
+
+    .products-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 2rem;
+        padding: 0;
+    }
+
+    .no-products {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 3rem;
+        background: #f8f9fa;
+        border-radius: 12px;
+        color: #2d3436;
+    }
+
+    .no-products p {
+        font-size: 1.2rem;
+        margin: 0;
+    }
+
+    /* Toast Notification */
+    .toast-container {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        z-index: 1000;
+    }
+
+    .toast {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        padding: 1rem 1.5rem;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        animation: slideIn 0.3s ease;
+        border-left: 4px solid #00b761;
+    }
+
+    .toast.success {
+        border-left-color: #00b761;
+    }
+
+    .toast.error {
+        border-left-color: #ff4757;
+    }
+
+    .toast-icon {
+        font-size: 1.2rem;
+        color: #00b761;
+    }
+
+    .toast.error .toast-icon {
+        color: #ff4757;
+    }
+
+    .toast-message {
+        margin: 0;
+        color: #2d3436;
+    }
+
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .products-header {
+            padding: 3rem 0;
+        }
+
+        .products-title {
+            font-size: 2.2rem;
+        }
+
+        .header-subtitle {
+            font-size: 1rem;
+            padding: 0 1rem;
+        }
+
+        .floating-icon {
+            transform: scale(0.7);
+        }
+
+        .products-grid {
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 1rem;
+            padding: 1rem;
+        }
+
+        .toast-container {
+            left: 1rem;
+            right: 1rem;
+            bottom: 1rem;
+        }
+
+        .toast {
+            margin-bottom: 0.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="products-header">
+    <div class="floating-icons">
+        <svg class="floating-icon icon-1" width="50" height="50" viewBox="0 0 24 24" fill="white">
+            <path d="M12 2L2 7v10l10 5 10-5V7L12 2zm0 2.236L19.09 8 12 11.764 4.91 8 12 4.236zM4 9.618v6.764L11 19.382v-6.764L4 9.618zm16 0l-7 3v6.764l7-3V9.618z"/>
+        </svg>
+        <svg class="floating-icon icon-2" width="50" height="50" viewBox="0 0 24 24" fill="white">
+            <path d="M3 6v11h3v5l5-5h10V6H3zm2 9V8h14v7H10.414L8 17.414V15H5z"/>
+        </svg>
+        <svg class="floating-icon icon-3" width="50" height="50" viewBox="0 0 24 24" fill="white">
+            <path d="M12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2zm0 18c-4.411 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8z"/>
+            <path d="M13 7h-2v6h6v-2h-4z"/>
+        </svg>
+        <svg class="floating-icon icon-4" width="50" height="50" viewBox="0 0 24 24" fill="white">
+            <path d="M20 2H4c-1.103 0-2 .897-2 2v12c0 1.103.897 2 2 2h3v3.767L13.277 18H20c1.103 0 2-.897 2-2V4c0-1.103-.897-2-2-2zm0 14h-7.277L9 18.233V16H4V4h16v12z"/>
+        </svg>
+    </div>
+    <div class="container">
+        <div class="header-content">
+            <h1 class="products-title">Explore Our Products</h1>
+            <p class="header-subtitle">Discover fresh, high-quality groceries delivered right to your doorstep</p>
+        </div>
+    </div>
+</div>
+
+<div class="container mb-5">
+    <div class="products-grid">
+        {% for product in products %}
+            {% include 'store/includes/product_card.html' with product=product %}
+        {% empty %}
+            <div class="no-products">
+                <p>No products available at the moment.</p>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="toast-container"></div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    function showToast(message, type = 'success') {
+        const toastContainer = document.querySelector('.toast-container');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.innerHTML = `
+            <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'} toast-icon"></i>
+            <p class="toast-message">${message}</p>
+        `;
+        toastContainer.appendChild(toast);
+
+        // Remove toast after 3 seconds
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+
+    // Handle add to cart forms
+    document.querySelectorAll('.add-to-cart-form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const button = this.querySelector('button[type="submit"]');
+            button.disabled = true;
+            
+            fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('Product added to cart successfully!');
+                    if (data.cart_count !== undefined) {
+                        document.querySelector('.cart-count').textContent = data.cart_count;
+                    }
+                } else {
+                    showToast(data.error || 'Failed to add product to cart', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('An error occurred while adding the product to cart', 'error');
+            })
+            .finally(() => {
+                button.disabled = false;
+            });
+        });
+    });
+});
+</script>
+{% endblock %}

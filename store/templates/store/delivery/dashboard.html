@@ -1,0 +1,237 @@
+{% extends 'store/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Stats Overview -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white h-100">
+                <div class="card-body">
+                    <h6 class="card-title">Pending Orders</h6>
+                    <h2 class="display-4">{{ pending_count }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white h-100">
+                <div class="card-body">
+                    <h6 class="card-title">Active Orders</h6>
+                    <h2 class="display-4">{{ active_count }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white h-100">
+                <div class="card-body">
+                    <h6 class="card-title">Completed Orders</h6>
+                    <h2 class="display-4">{{ completed_count }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white h-100">
+                <div class="card-body">
+                    <h6 class="card-title">Unread Messages</h6>
+                    <h2 class="display-4">{{ unread_messages }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delivery Boy Info -->
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">My Profile</h5>
+            <form method="post" action="{% url 'toggle_delivery_availability' %}" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" class="btn {% if delivery_boy.is_available %}btn-danger{% else %}btn-success{% endif %}">
+                    {% if delivery_boy.is_available %}
+                        <i class="fas fa-pause"></i> Go Offline
+                    {% else %}
+                        <i class="fas fa-play"></i> Go Online
+                    {% endif %}
+                </button>
+            </form>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <p><strong>Name:</strong> {{ delivery_boy.name }}</p>
+                    <p><strong>Phone:</strong> {{ delivery_boy.phone }}</p>
+                </div>
+                <div class="col-md-4">
+                    <p><strong>Total Deliveries:</strong> {{ delivery_boy.total_deliveries }}</p>
+                    <p><strong>Rating:</strong> {{ delivery_boy.rating|floatformat:1 }}/5.0</p>
+                </div>
+                <div class="col-md-4">
+                    <p><strong>Status:</strong> 
+                        {% if delivery_boy.is_available %}
+                            <span class="badge bg-success">Available</span>
+                        {% else %}
+                            <span class="badge bg-danger">Offline</span>
+                        {% endif %}
+                    </p>
+                    {% if not delivery_boy.is_approved %}
+                        <div class="alert alert-warning">
+                            Your account is pending approval
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Assignments -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Recent Deliveries</h5>
+            <a href="{% url 'delivery_orders' %}" class="btn btn-primary btn-sm">
+                <i class="fas fa-list"></i> View All Orders
+            </a>
+        </div>
+        <div class="card-body">
+            {% if delivery_assignments %}
+                {% for assignment in delivery_assignments %}
+                <div class="delivery-item mb-3 p-3 border rounded {% if assignment.status == 'assigned' %}bg-light{% elif assignment.status == 'picked_up' or assignment.status == 'in_transit' %}bg-info bg-opacity-10{% else %}bg-success bg-opacity-10{% endif %}">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h6 class="mb-1">Order #{{ assignment.order.id }}</h6>
+                            <p class="mb-2 text-muted">
+                                <strong>Customer:</strong> {{ assignment.order.name }}
+                            </p>
+                            <p class="mb-2">
+                                <strong>Address:</strong><br>
+                                {{ assignment.order.address }}, {{ assignment.order.city }} {{ assignment.order.postal_code }}
+                            </p>
+                            <p class="mb-0">
+                                <strong>Status:</strong>
+                                <span class="badge {% if assignment.status == 'assigned' %}bg-warning{% elif assignment.status == 'picked_up' or assignment.status == 'in_transit' %}bg-info{% else %}bg-success{% endif %}">
+                                    {{ assignment.get_status_display }}
+                                </span>
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                            <a href="{% url 'delivery_chat' assignment.order.id %}" class="btn btn-outline-primary btn-sm mb-2">
+                                <i class="fas fa-comments"></i> Chat
+                            </a>
+                            <a href="{% url 'order_detail' assignment.order.id %}" class="btn btn-outline-secondary btn-sm mb-2">
+                                <i class="fas fa-info-circle"></i> Details
+                            </a>
+                            {% if assignment.status != 'delivered' %}
+                            <div class="d-inline">
+                                {% csrf_token %}
+                                {% if assignment.status == 'assigned' %}
+                                <button onclick="updateDeliveryStatus('{{ assignment.id }}', 'picked_up')" class="btn btn-success btn-sm">
+                                    <i class="fas fa-box"></i> Pick Up
+                                </button>
+                                {% elif assignment.status == 'picked_up' %}
+                                <button onclick="updateDeliveryStatus('{{ assignment.id }}', 'in_transit')" class="btn btn-info btn-sm">
+                                    <i class="fas fa-truck"></i> Start Delivery
+                                </button>
+                                {% elif assignment.status == 'in_transit' %}
+                                <button onclick="updateDeliveryStatus('{{ assignment.id }}', 'delivered')" class="btn btn-success btn-sm">
+                                    <i class="fas fa-check"></i> Mark Delivered
+                                </button>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+                    <h5>No Recent Deliveries</h5>
+                    <p class="text-muted">You don't have any delivery assignments yet.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border-radius: 0.5rem;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+    
+    .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+    }
+    
+    .delivery-item {
+        transition: all 0.3s ease;
+    }
+    
+    .delivery-item:hover {
+        box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+    }
+    
+    .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+        border-radius: 0.25rem;
+    }
+    
+    .badge {
+        padding: 0.5em 0.75em;
+        font-weight: 500;
+    }
+    
+    .display-4 {
+        font-size: 2.5rem;
+        font-weight: 300;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+function updateDeliveryStatus(assignmentId, status) {
+    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+    fetch(`/delivery/update-status/${assignmentId}/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': csrftoken
+        },
+        body: `status=${status}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            Swal.fire({
+                title: 'Success!',
+                text: data.message,
+                icon: 'success',
+                confirmButtonText: 'OK'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.reload();
+                }
+            });
+        } else {
+            Swal.fire({
+                title: 'Error!',
+                text: data.message || 'Failed to update status',
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
+        }
+    })
+    .catch(error => {
+        Swal.fire({
+            title: 'Error!',
+            text: 'Failed to update status',
+            icon: 'error',
+            confirmButtonText: 'OK'
+        });
+    });
+}
+</script>
+{% endblock %}

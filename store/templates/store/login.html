@@ -1,0 +1,229 @@
+{% extends 'store/base.html' %}
+{% load static %}
+
+{% block title %}Login - Fresh Mart{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <div class="floating-items">
+        <i class="fas fa-carrot item-1"></i>
+        <i class="fas fa-apple-alt item-2"></i>
+        <i class="fas fa-lemon item-3"></i>
+        <i class="fas fa-pepper-hot item-4"></i>
+        <i class="fas fa-egg item-5"></i>
+        <i class="fas fa-bread-slice item-6"></i>
+    </div>
+    <div class="login-box">
+        <h2>Welcome Back!</h2>
+        <p class="subtitle">Please sign in to continue</p>
+        
+        {% if messages %}
+        <div class="messages mb-4">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <form method="post" action="{% url 'login' %}">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" name="username" id="username" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" name="password" id="password" required>
+            </div>
+            <button type="submit" class="login-btn">Sign In</button>
+        </form>
+        
+        <div class="forgot-password">
+            <a href="{% url 'password_reset' %}">Forgot Password?</a>
+        </div>
+        
+        <div class="register-link">
+            <p>Don't have an account?</p>
+            <a href="{% url 'register' %}">Register as Customer</a>
+        </div>
+    </div>
+</div>
+
+<style>
+.login-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.login-box {
+    background: white;
+    padding: 2.5rem;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
+    position: relative;
+    z-index: 2;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.login-box h2 {
+    color: #2d3436;
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    text-align: center;
+}
+
+.subtitle {
+    color: #636e72;
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #2d3436;
+    font-weight: 500;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-group input:focus {
+    border-color: #00b761;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0, 183, 97, 0.1);
+}
+
+.login-btn {
+    width: 100%;
+    padding: 1rem;
+    background: #00b761;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.login-btn:hover {
+    background: #009951;
+    transform: translateY(-2px);
+}
+
+.forgot-password {
+    text-align: center;
+    margin-top: 1rem;
+}
+
+.forgot-password a {
+    color: #00b761;
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+.register-link {
+    text-align: center;
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e9ecef;
+}
+
+.register-link p {
+    color: #636e72;
+    margin-bottom: 0.5rem;
+}
+
+.register-link a {
+    color: #00b761;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+/* Floating Items Animation */
+.floating-items i {
+    position: absolute;
+    color: rgba(0, 183, 97, 0.1);
+    font-size: 3rem;
+    pointer-events: none;
+}
+
+.item-1 { top: 10%; left: 10%; animation: float 8s infinite; }
+.item-2 { top: 20%; right: 15%; animation: float 9s infinite; }
+.item-3 { bottom: 15%; left: 15%; animation: float 7s infinite; }
+.item-4 { bottom: 25%; right: 10%; animation: float 10s infinite; }
+.item-5 { top: 40%; left: 20%; animation: float 11s infinite; }
+.item-6 { top: 30%; right: 25%; animation: float 6s infinite; }
+
+@keyframes float {
+    0%, 100% {
+        transform: translate(0, 0) rotate(0deg);
+    }
+    25% {
+        transform: translate(15px, -15px) rotate(5deg);
+    }
+    50% {
+        transform: translate(0, -25px) rotate(0deg);
+    }
+    75% {
+        transform: translate(-15px, -15px) rotate(-5deg);
+    }
+}
+
+/* Background Gradient Animation */
+.login-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, 
+        rgba(0, 183, 97, 0.1),
+        rgba(255, 255, 255, 0.1),
+        rgba(0, 183, 97, 0.1));
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
+    z-index: 1;
+}
+
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Responsive Design */
+@media (max-width: 480px) {
+    .login-box {
+        margin: 1rem;
+        padding: 2rem;
+    }
+
+    .floating-items i {
+        font-size: 2rem;
+    }
+}
+</style>
+{% endblock %}

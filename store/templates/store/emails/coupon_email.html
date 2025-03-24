@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        .content {
+            padding: 30px;
+            text-align: center;
+        }
+        .coupon-box {
+            background: #f8f9fa;
+            border: 2px dashed #4CAF50;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .coupon-code {
+            font-size: 32px;
+            font-weight: bold;
+            color: #4CAF50;
+            letter-spacing: 2px;
+            margin: 15px 0;
+        }
+        .discount-amount {
+            font-size: 24px;
+            color: #2c3e50;
+            margin: 15px 0;
+        }
+        .expiry-date {
+            color: #6c757d;
+            font-size: 16px;
+            margin: 10px 0;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-top: 20px;
+            font-weight: 500;
+        }
+        .button:hover {
+            background-color: #45a049;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+            color: #6c757d;
+        }
+        .footer p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Special Discount for You!</h1>
+        </div>
+        
+        <div class="content">
+            <h2>Here's Your Exclusive Discount Coupon</h2>
+            
+            <div class="coupon-box">
+                <p>Use this coupon code at checkout</p>
+                <div class="coupon-code">{{ coupon_code }}</div>
+                <div class="discount-amount">Save ₹{{ discount_amount }}</div>
+                <p class="expiry-date">Valid until {{ expiry_date|date:"F d, Y" }}</p>
+            </div>
+            
+            <p>Shop now and save big on your favorite groceries!</p>
+            
+            <a href="{% url 'home' %}" class="button">Shop Now</a>
+            
+            <p style="margin-top: 20px; font-size: 14px; color: #6c757d;">
+                *Terms and conditions apply. Discount valid on all products.
+                Cannot be combined with other offers.
+            </p>
+        </div>
+        
+        <div class="footer">
+            <p>Thank you for choosing Fresh Mart!</p>
+            <p>© {% now "Y" %} Fresh Mart. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html> 

@@ -1,0 +1,130 @@
+{% extends 'store/base.html' %}
+{% load static %}
+
+{% block title %}Search Results - {{ query }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .search-header {
+        background-color: #f8f9fa;
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+    }
+    
+    .search-form {
+        max-width: 600px;
+        margin: 0 auto;
+        position: relative;
+    }
+    
+    .search-input {
+        width: 100%;
+        padding: 1rem 1.5rem;
+        font-size: 1.1rem;
+        border: 1px solid #ddd;
+        border-radius: 50px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .search-btn {
+        position: absolute;
+        right: 5px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: #00b761;
+        border: none;
+        padding: 0.5rem 1.5rem;
+        border-radius: 50px;
+        color: white;
+        font-weight: 600;
+    }
+    
+    .product-card {
+        border-radius: 15px;
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: none;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        height: 100%;
+        margin-bottom: 2rem;
+    }
+    
+    .product-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    
+    .product-img {
+        height: 200px;
+        object-fit: cover;
+        width: 100%;
+    }
+    
+    .product-content {
+        padding: 1.5rem;
+    }
+    
+    .product-price {
+        color: #00b761;
+        font-weight: 600;
+        font-size: 1.25rem;
+    }
+    
+    .no-results {
+        text-align: center;
+        padding: 3rem 0;
+    }
+    
+    .no-results i {
+        font-size: 3rem;
+        color: #ddd;
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="search-header">
+    <div class="container">
+        <form action="{% url 'search' %}" method="GET" class="search-form">
+            <input type="text" name="q" class="search-input" value="{{ query }}" placeholder="Search for groceries..." required>
+            <button type="submit" class="search-btn">
+                <i class="fas fa-search"></i>
+            </button>
+        </form>
+    </div>
+</div>
+
+<div class="container">
+    {% if query %}
+        <h2 class="mb-4">Search Results for "{{ query }}"</h2>
+        {% if products %}
+            <div class="row">
+                {% for product in products %}
+                <div class="col-md-3">
+                    <div class="product-card">
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-img">
+                        <div class="product-content">
+                            <h5 class="mb-2">{{ product.name }}</h5>
+                            <p class="text-muted mb-2">{{ product.description|truncatechars:100 }}</p>
+                            <p class="product-price mb-3">${{ product.price }}</p>
+                            <form method="post" action="{% url 'add_to_cart' product.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-primary w-100">Add to Cart</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="no-results">
+                <i class="fas fa-search mb-3"></i>
+                <h3>No products found</h3>
+                <p class="text-muted">Try different keywords or browse our categories</p>
+                <a href="{% url 'product_list' %}" class="btn btn-primary mt-3">Browse All Products</a>
+            </div>
+        {% endif %}
+    {% endif %}
+</div>
+{% endblock %}

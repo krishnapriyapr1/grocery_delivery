@@ -1,0 +1,188 @@
+{% extends 'store/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+.chat-messages {
+    height: 400px;
+    overflow-y: auto;
+    padding: 1rem;
+    background-color: #f8f9fa;
+}
+
+.message-bubble {
+    max-width: 80%;
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    border-radius: 1rem;
+}
+
+.message-customer {
+    background-color: #007bff;
+    color: white;
+    margin-right: auto;
+}
+
+.message-delivery {
+    background-color: #ffffff;
+    border: 1px solid #dee2e6;
+    margin-left: auto;
+}
+
+.quick-message-btn {
+    cursor: pointer;
+}
+
+.message-time {
+    font-size: 0.75rem;
+    opacity: 0.8;
+}
+</style>
+{% endblock extra_css %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <!-- Back to Dashboard Button -->
+            <div class="mb-3">
+                {% if is_delivery_boy %}
+                    <a href="{% url 'delivery_dashboard' %}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Back to Delivery Dashboard
+                    </a>
+                {% else %}
+                    <a href="{% url 'my_orders' %}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Back to Orders
+                    </a>
+                {% endif %}
+            </div>
+            <div class="card">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-0">
+                            {% if is_delivery_boy %}
+                                Chat with {{ order.user.get_full_name|default:order.user.username }}
+                            {% else %}
+                                Chat with Delivery Person
+                            {% endif %}
+                        </h5>
+                        <small>Order #{{ order.id }}</small>
+                    </div>
+                    <div>
+                        {% if not is_delivery_boy %}
+                            <button class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#deliveryInfoModal">
+                                <i class="bi bi-info-circle"></i> Delivery Info
+                            </button>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Chat Messages -->
+                    <div class="chat-messages" id="chatMessages" hx-get="{% url 'delivery_chat' order.id %}" hx-trigger="every 5s" hx-target="#chatMessages" hx-swap="innerHTML">
+                        {% include 'store/partials/chat_messages.html' %}
+                    </div>
+
+                    <!-- Quick Messages -->
+                    <div class="quick-messages mb-3">
+                        {% for msg in quick_messages %}
+                        <button class="btn btn-sm btn-outline-secondary me-2 mb-2 quick-message-btn" data-message="{{ msg.message }}">
+                            {{ msg.message }}
+                        </button>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Message Input -->
+                    <form id="chatForm" method="post" hx-post="{% url 'delivery_chat' order.id %}" hx-target="#chatMessages">
+                        {% csrf_token %}
+                        <div class="input-group">
+                            <input type="text" name="message" id="messageInput" class="form-control" placeholder="Type your message..." required>
+                            <input type="hidden" name="is_quick_message" value="false" id="isQuickMessage">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-send"></i> Send
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delivery Info Modal -->
+{% if not is_delivery_boy %}
+<div class="modal fade" id="deliveryInfoModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delivery Information</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex align-items-center mb-3">
+                    <img src="{% static 'store/img/delivery-profile.png' %}" alt="Delivery Person" class="rounded-circle me-3" style="width: 60px; height: 60px; object-fit: cover;">
+                    <div>
+                        <h6 class="mb-1">{{ order.delivery_assignment.delivery_boy.name }}</h6>
+                        <p class="mb-0 text-muted">
+                            <i class="bi bi-star-fill text-warning"></i> {{ order.delivery_assignment.delivery_boy.rating|floatformat:1 }}
+                        </p>
+                    </div>
+                </div>
+                <hr>
+                <p><strong>Contact:</strong> {{ order.delivery_assignment.delivery_boy.phone }}</p>
+                <p><strong>Status:</strong> {{ order.delivery_assignment.get_status_display }}</p>
+                {% if order.estimated_delivery %}
+                    <p><strong>Estimated Delivery:</strong> {{ order.estimated_delivery|date:"g:i A" }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock content %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const chatMessages = document.getElementById('chatMessages');
+    const chatForm = document.getElementById('chatForm');
+    const messageInput = document.getElementById('messageInput');
+    const isQuickMessage = document.getElementById('isQuickMessage');
+    const quickMessageBtns = document.querySelectorAll('.quick-message-btn');
+
+    // Scroll to bottom of chat
+    function scrollToBottom() {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // Initial scroll
+    scrollToBottom();
+
+    // Scroll after HTMX updates
+    document.body.addEventListener('htmx:afterSwap', function(evt) {
+        if (evt.detail.target.id === 'chatMessages') {
+            scrollToBottom();
+        }
+    });
+
+    // Handle quick message buttons
+    quickMessageBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const message = this.dataset.message;
+            messageInput.value = message;
+            isQuickMessage.value = 'true';
+            chatForm.dispatchEvent(new Event('submit'));
+            messageInput.value = '';
+            isQuickMessage.value = 'false';
+        });
+    });
+
+    // Clear input after form submission
+    chatForm.addEventListener('htmx:afterRequest', function(evt) {
+        if (evt.detail.successful) {
+            messageInput.value = '';
+            scrollToBottom();
+        }
+    });
+});
+</script>
+{% endblock extra_js %}

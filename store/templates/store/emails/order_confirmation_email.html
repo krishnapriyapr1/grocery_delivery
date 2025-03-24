@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        .header p {
+            margin: 10px 0 0;
+            font-size: 18px;
+            opacity: 0.9;
+        }
+        .content {
+            padding: 30px;
+        }
+        .greeting {
+            font-size: 18px;
+            margin-bottom: 25px;
+        }
+        .order-details {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .section-title {
+            color: #2c3e50;
+            font-size: 20px;
+            font-weight: 600;
+            margin: 0 0 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .detail-label {
+            color: #6c757d;
+            font-weight: 500;
+        }
+        .detail-value {
+            color: #2c3e50;
+            font-weight: 500;
+        }
+        .order-items {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        .order-items th {
+            background-color: #f8f9fa;
+            color: #2c3e50;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+        .order-items td {
+            padding: 12px;
+            border-top: 1px solid #e9ecef;
+        }
+        .total {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: right;
+            margin-top: 20px;
+        }
+        .total-amount {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+            color: #6c757d;
+        }
+        .footer p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-top: 20px;
+            font-weight: 500;
+        }
+        .button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Order Confirmation</h1>
+            <p>Order #{{ order.id }}</p>
+        </div>
+        
+        <div class="content">
+            <div class="greeting">
+                <p>Dear {{ order.name }},</p>
+                <p>Thank you for shopping with Fresh Mart! Your order has been successfully placed.</p>
+            </div>
+            
+            <div class="order-details">
+                <h3 class="section-title">Order Information</h3>
+                <div class="detail-row">
+                    <span class="detail-label">Order Number:</span>
+                    <span class="detail-value">#{{ order.id }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Order Date:</span>
+                    <span class="detail-value">{{ order.created_at|date:"F d, Y" }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Payment Method:</span>
+                    <span class="detail-value">{{ order.get_payment_method_display }}</span>
+                </div>
+            </div>
+            
+            <div class="order-details">
+                <h3 class="section-title">Delivery Address</h3>
+                <p style="margin: 0;">{{ order.address }}</p>
+                <p style="margin: 5px 0;">{{ order.city }}</p>
+                <p style="margin: 0;">{{ order.postal_code }}</p>
+            </div>
+            
+            <h3 class="section-title">Order Summary</h3>
+            <table class="order-items">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Quantity</th>
+                        <th>Price</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in order.items.all %}
+                    <tr>
+                        <td>{{ item.product.name }}</td>
+                        <td>{{ item.quantity }}</td>
+                        <td>₹{{ item.price }}</td>
+                        <td>₹{{ item.get_cost }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            
+            <div class="total">
+                <span class="total-amount">Total Amount: ₹{{ order.total_amount }}</span>
+            </div>
+            
+            <p style="margin-top: 30px;">We'll notify you when your order ships. You can track your order status by clicking the button below:</p>
+            
+            <center>
+                <a href="{% url 'order_tracking' order.id %}" class="button">Track Your Order</a>
+            </center>
+        </div>
+        
+        <div class="footer">
+            <p>Thank you for choosing Fresh Mart!</p>
+            <p>If you have any questions about your order, please contact our customer support team.</p>
+            <p>© {% now "Y" %} Fresh Mart. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html> 

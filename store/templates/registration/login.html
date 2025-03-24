@@ -1,0 +1,203 @@
+{% extends 'store/base.html' %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block title %}Login - Fresh Mart{% endblock %}
+
+{% block extra_css %}
+<style>
+    .auth-container {
+        min-height: calc(100vh - 76px);
+        background-color: #f8f9fa;
+    }
+    
+    .auth-card {
+        background: white;
+        border: none;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 0 40px rgba(0,0,0,0.1);
+    }
+    
+    .auth-image {
+        background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), 
+                    url('{% static "images/auth/login-bg.jpg" %}') center/cover;
+        min-height: 600px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        text-align: center;
+        padding: 2rem;
+    }
+    
+    .auth-image h2 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+    
+    .auth-image p {
+        font-size: 1.1rem;
+        max-width: 400px;
+        margin: 0 auto;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+    }
+    
+    .auth-form {
+        padding: 3rem;
+    }
+    
+    .auth-form h3 {
+        color: #333;
+        font-weight: 600;
+        margin-bottom: 2rem;
+    }
+    
+    .form-control {
+        border-radius: 8px;
+        padding: 0.8rem 1rem;
+        border: 1px solid #e1e1e1;
+        font-size: 1rem;
+    }
+    
+    .form-control:focus {
+        border-color: #00b761;
+        box-shadow: 0 0 0 0.2rem rgba(0, 183, 97, 0.25);
+    }
+    
+    .btn-auth {
+        background-color: #00b761;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.8rem 2rem;
+        font-size: 1rem;
+        font-weight: 500;
+        width: 100%;
+        margin-top: 1rem;
+        transition: all 0.3s;
+    }
+    
+    .btn-auth:hover {
+        background-color: #009951;
+        transform: translateY(-2px);
+        color: white;
+    }
+    
+    .auth-links {
+        margin-top: 2rem;
+    }
+    
+    .auth-links a {
+        color: #00b761;
+        text-decoration: none;
+        transition: color 0.3s;
+    }
+    
+    .auth-links a:hover {
+        color: #009951;
+    }
+    
+    .divider {
+        margin: 1.5rem 0;
+        border-top: 1px solid #e1e1e1;
+    }
+    
+    .social-login {
+        margin-top: 2rem;
+    }
+    
+    .btn-social {
+        width: 100%;
+        padding: 0.8rem;
+        border: 1px solid #e1e1e1;
+        border-radius: 8px;
+        background: white;
+        margin-bottom: 1rem;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .btn-social i {
+        margin-right: 0.5rem;
+    }
+    
+    .btn-social:hover {
+        background: #f8f9fa;
+        transform: translateY(-2px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-container py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="auth-card">
+                    <div class="row g-0">
+                        <div class="col-md-6 d-none d-md-block">
+                            <div class="auth-image">
+                                <div>
+                                    <h2>Welcome Back!</h2>
+                                    <p>Log in to access your account and continue shopping for fresh, high-quality groceries delivered to your doorstep.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="auth-form">
+                                <h3>Sign In to Fresh Mart</h3>
+                                {% if messages %}
+                                <div class="messages">
+                                    {% for message in messages %}
+                                    <div class="alert alert-{{ message.tags }}">
+                                        {{ message }}
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                                <form method="post">
+                                    {% csrf_token %}
+                                    <div class="mb-3">
+                                        <label for="username" class="form-label">Username</label>
+                                        <input type="text" class="form-control" id="username" name="username" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="password" class="form-label">Password</label>
+                                        <input type="password" class="form-control" id="password" name="password" required>
+                                    </div>
+                                    <button type="submit" class="btn btn-auth">Sign In</button>
+                                </form>
+                                
+                                <div class="divider"></div>
+                                
+                                <div class="social-login">
+                                    <button class="btn btn-social">
+                                        <i class="fab fa-google"></i> Continue with Google
+                                    </button>
+                                    <button class="btn btn-social">
+                                        <i class="fab fa-facebook"></i> Continue with Facebook
+                                    </button>
+                                </div>
+                                
+                                <div class="auth-links text-center">
+                                    <p class="mb-2">
+                                        Don't have an account? <a href="{% url 'register' %}">Create Account</a>
+                                    </p>
+                                    <p class="mb-0">
+                                        <a href="{% url 'password_reset' %}">Forgot your password?</a>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

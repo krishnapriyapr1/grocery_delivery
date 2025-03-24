@@ -1,0 +1,187 @@
+{% extends 'store/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Order #{{ order.id }}</h5>
+                    <div>
+                        {% if order.delivery_assignment %}
+                            <a href="{% url 'delivery_chat' order.id %}" class="btn btn-outline-primary">
+                                Chat with Delivery Person
+                                {% if order.unread_messages_count > 0 %}
+                                    <span class="badge bg-danger">{{ order.unread_messages_count }}</span>
+                                {% endif %}
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6>Order Information</h6>
+                            <p><strong>Date:</strong> {{ order.created_at|date:"F j, Y" }}</p>
+                            <p><strong>Status:</strong> 
+                                <span class="badge {% if order.status == 'delivered' %}bg-success
+                                    {% elif order.status == 'cancelled' %}bg-danger
+                                    {% elif order.status == 'processing' %}bg-warning
+                                    {% else %}bg-info{% endif %}">
+                                    {{ order.get_status_display }}
+                                </span>
+                            </p>
+                            <p><strong>Total Amount:</strong> ₹{{ order.total_amount }}</p>
+                            <p><strong>Payment Method:</strong> {{ order.get_payment_method_display }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Delivery Information</h6>
+                            {% if order.delivery_assignment %}
+                                <p><strong>Status:</strong> 
+                                    <span class="badge {% if order.delivery_assignment.status == 'delivered' %}bg-success
+                                        {% elif order.delivery_assignment.status == 'failed' %}bg-danger
+                                        {% else %}bg-info{% endif %}">
+                                        {{ order.delivery_assignment.get_status_display }}
+                                    </span>
+                                </p>
+                                {% if order.estimated_delivery %}
+                                    <p><strong>Estimated Delivery:</strong> {{ order.estimated_delivery|date:"F j, Y g:i A" }}</p>
+                                {% endif %}
+                                <p><strong>Delivery Person:</strong> {{ order.delivery_assignment.delivery_boy.name }}</p>
+                                <p><strong>Contact:</strong> {{ order.delivery_assignment.delivery_boy.phone }}</p>
+                            {% else %}
+                                <p class="text-muted">Delivery assignment pending...</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <h6>Order Items</h6>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Quantity</th>
+                                    <th>Price</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in order.items.all %}
+                                <tr>
+                                    <td>{{ item.product.name }}</td>
+                                    <td>{{ item.quantity }}</td>
+                                    <td>₹{{ item.price }}</td>
+                                    <td>₹{{ item.get_cost }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="3" class="text-end"><strong>Subtotal:</strong></td>
+                                    <td>₹{{ order.total_amount }}</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3" class="text-end"><strong>Delivery Fee:</strong></td>
+                                    <td>₹{{ order.get_delivery_fee }}</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3" class="text-end"><strong>Total:</strong></td>
+                                    <td>₹{{ order.get_total_with_delivery }}</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Shipping Address</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-1"><strong>{{ order.name }}</strong></p>
+                    <p class="mb-1">{{ order.address }}</p>
+                    <p class="mb-1">{{ order.city }}, {{ order.postal_code }}</p>
+                    <p class="mb-1">Phone: {{ order.phone }}</p>
+                    <p class="mb-0">Email: {{ order.email }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.order-img {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+}
+
+.timeline {
+    position: relative;
+    padding: 20px 0;
+}
+
+.timeline-item {
+    position: relative;
+    padding-left: 45px;
+    margin-bottom: 35px;
+}
+
+.timeline-item:before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 25px;
+    bottom: -35px;
+    width: 2px;
+    background: #e9ecef;
+}
+
+.timeline-item:last-child:before {
+    display: none;
+}
+
+.timeline-item i {
+    position: absolute;
+    left: 0;
+    top: 5px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #f8f9fa;
+    border: 2px solid #e9ecef;
+    text-align: center;
+    line-height: 26px;
+    color: #adb5bd;
+}
+
+.timeline-item.active i {
+    background: #007bff;
+    border-color: #007bff;
+    color: #fff;
+}
+
+.timeline-content {
+    padding-bottom: 10px;
+}
+
+.timeline-content h6 {
+    margin-bottom: 5px;
+}
+
+.timeline-content p {
+    margin: 0;
+    font-size: 0.875rem;
+}
+</style>
+
+<!-- Bootstrap Icons -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+{% endblock %}

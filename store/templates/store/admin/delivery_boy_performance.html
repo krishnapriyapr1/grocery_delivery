@@ -1,0 +1,186 @@
+{% extends 'store/admin/base_admin.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="mb-3">
+        <a href="{% url 'admin_dashboard' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+        </a>
+    </div>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Delivery Personnel Performance</h2>
+        <a href="{% url 'admin_delivery_management' %}" class="btn btn-secondary">Back to Delivery Management</a>
+    </div>
+
+    <!-- Delivery Boy Details -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3">
+                    <h5>{{ delivery_boy.name }}</h5>
+                    <p class="text-muted mb-0">{{ delivery_boy.phone }}</p>
+                </div>
+                <div class="col-md-3">
+                    <p><strong>Total Deliveries:</strong> {{ total_deliveries }}</p>
+                    <p><strong>Rating:</strong> {{ delivery_boy.rating }}/5.0</p>
+                </div>
+                <div class="col-md-3">
+                    <p><strong>Status:</strong>
+                        {% if delivery_boy.is_available %}
+                        <span class="badge bg-success">Available</span>
+                        {% else %}
+                        <span class="badge bg-secondary">Not Available</span>
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="col-md-3">
+                    <p><strong>Joined:</strong> {{ delivery_boy.created_at|date:"M d, Y" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance Metrics -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Monthly Performance</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Deliveries</th>
+                                    <th>On-time</th>
+                                    <th>Distance</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for report in reports %}
+                                <tr>
+                                    <td>{{ report.date|date:"M d, Y" }}</td>
+                                    <td>{{ report.orders_delivered }}</td>
+                                    <td>{{ report.on_time_deliveries }}</td>
+                                    <td>{{ report.total_distance }} km</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Recent Deliveries</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Customer</th>
+                                    <th>Delivery Time</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for delivery in recent_deliveries %}
+                                <tr>
+                                    <td>#{{ delivery.order.id }}</td>
+                                    <td>{{ delivery.order.name }}</td>
+                                    <td>{{ delivery.delivered_at|date:"M d, Y H:i" }}</td>
+                                    <td>
+                                        <span class="badge bg-success">{{ delivery.get_status_display }}</span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance Charts -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Delivery Trends</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <canvas id="deliveriesChart"></canvas>
+                </div>
+                <div class="col-md-6">
+                    <canvas id="onTimeChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Prepare data for charts
+    const reports = {{ reports|safe }};
+    const dates = reports.map(r => r.date);
+    const deliveries = reports.map(r => r.orders_delivered);
+    const onTime = reports.map(r => r.on_time_deliveries);
+
+    // Deliveries Chart
+    new Chart(document.getElementById('deliveriesChart'), {
+        type: 'line',
+        data: {
+            labels: dates,
+            datasets: [{
+                label: 'Daily Deliveries',
+                data: deliveries,
+                borderColor: 'rgb(75, 192, 192)',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Daily Deliveries'
+                }
+            }
+        }
+    });
+
+    // On-time Performance Chart
+    new Chart(document.getElementById('onTimeChart'), {
+        type: 'line',
+        data: {
+            labels: dates,
+            datasets: [{
+                label: 'On-time Deliveries',
+                data: onTime,
+                borderColor: 'rgb(153, 102, 255)',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'On-time Performance'
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+{% endblock %}

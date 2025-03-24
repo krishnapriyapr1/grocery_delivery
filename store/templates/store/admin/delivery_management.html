@@ -1,0 +1,225 @@
+{% extends 'store/admin/base_admin.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="mb-3">
+        <a href="{% url 'admin_dashboard' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+        </a>
+    </div>
+
+    {% if messages %}
+    <div class="messages mb-4">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>{% if view == 'pending' %}Pending Approvals{% else %}Delivery Management{% endif %}</h2>
+        <div>
+            {% if view == 'pending' %}
+                <a href="{% url 'admin_delivery_management' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-list me-1"></i> View Active Delivery Boys
+                </a>
+            {% else %}
+                <a href="{% url 'admin_delivery_management' %}?view=pending" class="btn btn-primary">
+                    <i class="fas fa-clock me-1"></i> View Pending Approvals
+                    {% if pending_delivery_boys %}
+                    <span class="badge bg-light text-dark ms-2">{{ pending_delivery_boys.count }}</span>
+                    {% endif %}
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if view != 'pending' %}
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Active Delivery Partners</h5>
+                    <h2 class="mb-0">{{ delivery_boys.count }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Available Now</h5>
+                    <h2 class="mb-0">
+                    {% with available_count=0 %}
+                    {% for delivery_boy in delivery_boys %}
+                        {% if delivery_boy.is_available %}
+                            {% with available_count=available_count|add:1 %}{% endwith %}
+                        {% endif %}
+                    {% endfor %}
+                    {{ available_count }}
+                    {% endwith %}
+                    </h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-dark">
+                <div class="card-body">
+                    <h5 class="card-title">Active Deliveries</h5>
+                    <h2 class="mb-0">{{ active_deliveries.count }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Pending Approvals</h5>
+                    <h2 class="mb-0">{{ pending_delivery_boys.count }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Delivery Partners List -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">{% if view == 'pending' %}Pending Approvals{% else %}Active Delivery Partners{% endif %}</h5>
+        </div>
+        <div class="card-body">
+            {% if delivery_boys %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Contact</th>
+                            {% if view != 'pending' %}
+                            <th>Status</th>
+                            <th>Total Deliveries</th>
+                            <th>Rating</th>
+                            <th>Current Order</th>
+                            {% else %}
+                            <th>Registration Date</th>
+                            {% endif %}
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for delivery_boy in delivery_boys %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-circle me-2">
+                                        {{ delivery_boy.name|make_list|first|upper }}
+                                    </div>
+                                    {{ delivery_boy.name }}
+                                </div>
+                            </td>
+                            <td>
+                                <div>{{ delivery_boy.phone }}</div>
+                                <small class="text-muted">{{ delivery_boy.user.email }}</small>
+                            </td>
+                            {% if view != 'pending' %}
+                            <td>
+                                <span class="badge {% if delivery_boy.is_available %}bg-success{% else %}bg-secondary{% endif %}">
+                                    {% if delivery_boy.is_available %}Available{% else %}Busy{% endif %}
+                                </span>
+                            </td>
+                            <td>{{ delivery_boy.total_deliveries|default:0 }}</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-star text-warning me-1"></i>
+                                    {{ delivery_boy.avg_rating|default:"0.0" }}
+                                </div>
+                            </td>
+                            <td>
+                                {% for assignment in active_deliveries %}
+                                    {% if assignment.delivery_boy == delivery_boy %}
+                                        <span class="badge bg-info">Order #{{ assignment.order.id }}</span>
+                                    {% endif %}
+                                {% endfor %}
+                            </td>
+                            {% else %}
+                            <td>{{ delivery_boy.created_at|date:"M d, Y" }}</td>
+                            {% endif %}
+                            <td>
+                                {% if view == 'pending' %}
+                                <button class="btn btn-sm btn-success me-1" onclick="approveDeliveryBoy('{{ delivery_boy.id }}')">
+                                    <i class="fas fa-check"></i> Approve
+                                </button>
+                                <button class="btn btn-sm btn-danger" onclick="rejectDeliveryBoy('{{ delivery_boy.id }}')">
+                                    <i class="fas fa-times"></i> Reject
+                                </button>
+                                {% else %}
+                                <a href="{% url 'delivery_boy_performance' delivery_boy.id %}" class="btn btn-sm btn-info me-1">
+                                    <i class="fas fa-chart-line"></i> Performance
+                                </a>
+                                <button class="btn btn-sm {% if delivery_boy.is_available %}btn-secondary{% else %}btn-success{% endif %}"
+                                        onclick="toggleAvailability('{{ delivery_boy.id }}', {% if delivery_boy.is_available %}false{% else %}true{% endif %})">
+                                    <i class="fas {% if delivery_boy.is_available %}fa-pause{% else %}fa-play{% endif %}"></i>
+                                    {% if delivery_boy.is_available %}Set Busy{% else %}Set Available{% endif %}
+                                </button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-4">
+                <i class="fas {% if view == 'pending' %}fa-clock{% else %}fa-users{% endif %} fa-3x text-muted mb-3"></i>
+                <h5>No {% if view == 'pending' %}pending approvals{% else %}active delivery partners{% endif %} found</h5>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .avatar-circle {
+        width: 35px;
+        height: 35px;
+        background-color: #007bff;
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+    }
+</style>
+
+<script>
+function approveDeliveryBoy(deliveryBoyId) {
+    if (confirm('Are you sure you want to approve this delivery boy?')) {
+        window.location.href = `{% url 'manage_delivery_boy' delivery_boy_id=0 action='approve' %}`.replace('0', deliveryBoyId);
+    }
+}
+
+function rejectDeliveryBoy(deliveryBoyId) {
+    if (confirm('Are you sure you want to reject this delivery boy?')) {
+        window.location.href = `{% url 'manage_delivery_boy' delivery_boy_id=0 action='reject' %}`.replace('0', deliveryBoyId);
+    }
+}
+
+function toggleAvailability(deliveryBoyId, setAvailable) {
+    fetch(`{% url 'manage_delivery_boy' delivery_boy_id=0 action='toggle-availability' %}`.replace('0', deliveryBoyId))
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            }
+        });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Any additional initialization
+});
+</script>
+{% endblock %}

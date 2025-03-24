@@ -1,0 +1,496 @@
+{% extends 'store/base.html' %}
+{% load static %}
+
+{% block title %}Fresh Mart - Premium Grocery Delivery{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+    body {
+        font-family: 'Poppins', sans-serif;
+    }
+
+    /* Hero Section */
+    .hero-section {
+        position: relative;
+        min-height: 100vh;
+        background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), 
+                url('https://images.unsplash.com/photo-1542838132-92c53300491e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80') center/cover no-repeat;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 2rem;
+    }
+
+    .hero-content {
+        max-width: 800px;
+        width: 100%;
+        padding: 0 20px;
+    }
+
+    .hero-title {
+        font-size: 4rem;
+        font-weight: 800;
+        color: white;
+        margin-bottom: 1.5rem;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        line-height: 1.2;
+    }
+
+    .hero-description {
+        font-size: 1.25rem;
+        color: white;
+        margin-bottom: 2.5rem;
+        line-height: 1.6;
+    }
+
+    .search-container {
+        margin-bottom: 2rem;
+        padding: 0 15px;
+    }
+
+    .search-form {
+        position: relative;
+        max-width: 700px;
+        margin: 0 auto;
+    }
+
+    .search-input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 15px 50px 15px 25px;
+        border: none;
+        border-radius: 50px;
+        font-size: 1rem;
+        outline: none;
+        background: white;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .search-button {
+        position: absolute;
+        right: 5px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: #00b761;
+        border: none;
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        color: white;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .search-button:hover {
+        background: #009951;
+        transform: translateY(-50%) scale(1.05);
+    }
+
+    .start-shopping-btn {
+        display: inline-block;
+        background: #00b761;
+        color: white;
+        border: none;
+        padding: 1rem 2.5rem;
+        font-size: 1rem;
+        font-weight: 600;
+        border-radius: 50px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        text-decoration: none;
+        animation: float 3s ease-in-out infinite;
+    }
+
+    .start-shopping-btn:hover {
+        background: #009951;
+        transform: translateY(-2px);
+    }
+
+    /* Categories Section */
+    .categories-section {
+        padding: 5rem 0;
+        background-color: #ffffff;
+        position: relative;
+        border-bottom: 1px solid #eee;
+    }
+
+    .category-card {
+        border-radius: 12px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        margin-bottom: 2rem;
+        background: white;
+        border: 1px solid #eee;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        position: relative;
+    }
+
+    .category-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    }
+
+    .category-img {
+        height: 250px;
+        object-fit: cover;
+        width: 100%;
+        transition: transform 0.3s ease;
+    }
+
+    .category-card:hover .category-img {
+        transform: scale(1.05);
+    }
+
+    .category-content {
+        padding: 1.5rem;
+        text-align: center;
+        background: white;
+        border-top: 1px solid #eee;
+    }
+
+    .category-content h3 {
+        font-weight: 600;
+        color: #2d3436;
+        margin: 0;
+        font-size: 1.25rem;
+    }
+
+    .section-title {
+        text-align: center;
+        margin-bottom: 4rem;
+        position: relative;
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #2d3436;
+    }
+
+    .section-title:after {
+        content: '';
+        display: block;
+        width: 60px;
+        height: 4px;
+        background: #00b761;
+        margin: 1.2rem auto 0;
+        border-radius: 2px;
+    }
+
+    /* Features Section */
+    .features-section {
+        padding: 5rem 0;
+        background: #ffffff;
+        position: relative;
+        border-bottom: 1px solid #eee;
+    }
+
+    .feature-card {
+        text-align: center;
+        padding: 2rem;
+        border-radius: 12px;
+        background: white;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        height: 100%;
+        transition: all 0.3s ease;
+        border: 1px solid #eee;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    }
+
+    .feature-icon {
+        font-size: 2.5rem;
+        color: #00b761;
+        margin-bottom: 1.5rem;
+        background: rgba(0,183,97,0.1);
+        width: 80px;
+        height: 80px;
+        line-height: 80px;
+        border-radius: 50%;
+        display: inline-block;
+        transition: all 0.3s ease;
+    }
+
+    .feature-card:hover .feature-icon {
+        transform: scale(1.1);
+        background: rgba(0,183,97,0.15);
+    }
+
+    .feature-card h3 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: #2d3436;
+    }
+
+    .feature-card p {
+        color: #636e72;
+        font-size: 1.1rem;
+        line-height: 1.6;
+    }
+
+    /* Buttons */
+    .btn-primary {
+        background-color: #00b761;
+        border-color: #00b761;
+        padding: 0.9rem 2.5rem;
+        font-weight: 600;
+        border-radius: 50px;
+        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .btn-primary:hover {
+        background-color: #009951;
+        border-color: #009951;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(0,183,97,0.2);
+    }
+
+    .btn-lg {
+        font-size: 1.1rem;
+        padding: 1rem 3rem;
+    }
+
+    /* Animations */
+    .animate-text {
+        opacity: 0;
+        transform: translateY(20px);
+        animation: fadeInUp 0.8s ease forwards;
+    }
+
+    .delay-1 {
+        animation-delay: 0.2s;
+    }
+
+    .delay-2 {
+        animation-delay: 0.4s;
+    }
+
+    .delay-3 {
+        animation-delay: 0.6s;
+    }
+
+    .delay-4 {
+        animation-delay: 0.8s;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes float {
+        0%, 100% {
+            transform: translateY(0);
+        }
+        50% {
+            transform: translateY(-10px);
+        }
+    }
+
+    /* Responsive Adjustments */
+    @media (max-width: 768px) {
+        .hero-title {
+            font-size: 3rem;
+        }
+        
+        .hero-description {
+            font-size: 1.1rem;
+        }
+        
+        .search-input {
+            padding: 12px 45px 12px 20px;
+        }
+        
+        .search-button {
+            width: 30px;
+            height: 30px;
+            font-size: 0.8rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .hero-title {
+            font-size: 2.5rem;
+        }
+        
+        .hero-section {
+            padding: 1rem;
+        }
+        
+        .search-input {
+            padding: 10px 40px 10px 15px;
+            font-size: 0.9rem;
+        }
+        
+        .search-button {
+            width: 28px;
+            height: 28px;
+            font-size: 0.75rem;
+        }
+        
+        .start-shopping-btn {
+            padding: 0.8rem 2rem;
+            font-size: 0.9rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="hero-content">
+        <h1 class="hero-title animate-text">
+            Fresh Food<br>
+            Delivered Fresh
+        </h1>
+        <p class="hero-description animate-text delay-1">
+            Get your groceries delivered to your doorstep<br>
+            within hours. Fresh, quality products guaranteed.
+        </p>
+        <div class="search-container animate-text delay-2">
+            <form action="{% url 'search' %}" method="GET" class="search-form">
+                <div class="search-input-wrapper">
+                    <input type="text" name="q" placeholder="Search for groceries..." class="search-input" autocomplete="off">
+                    <button type="submit" class="search-button">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+        <a href="{% url 'product_list' %}" class="start-shopping-btn animate-text delay-3">
+            START SHOPPING
+        </a>
+    </div>
+</section>
+
+<!-- Categories Section -->
+<section class="categories-section">
+    <div class="container">
+        <h2 class="section-title fade-up">Shop by Category</h2>
+        <div class="row">
+            {% for category in categories %}
+            <div class="col-md-4 fade-up">
+                <a href="{% url 'category_products' category.slug %}" class="text-decoration-none">
+                    <div class="category-card">
+                        <img src="{{ category.image.url }}" alt="{{ category.name }}" class="category-img">
+                        <div class="category-content">
+                            <h3 class="mb-0">{{ category.name }}</h3>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="features-section">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-md-4 fade-up">
+                <div class="feature-card">
+                    <i class="fas fa-truck feature-icon"></i>
+                    <h3>Fast Delivery</h3>
+                    <p>Get your groceries delivered within hours</p>
+                </div>
+            </div>
+            <div class="col-md-4 fade-up">
+                <div class="feature-card">
+                    <i class="fas fa-leaf feature-icon"></i>
+                    <h3>Fresh & Organic</h3>
+                    <p>100% fresh and organic products</p>
+                </div>
+            </div>
+            <div class="col-md-4 fade-up">
+                <div class="feature-card">
+                    <i class="fas fa-shield-alt feature-icon"></i>
+                    <h3>Secure Payments</h3>
+                    <p>Multiple secure payment options</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function revealOnScroll() {
+        const elements = document.querySelectorAll('.fade-up');
+        elements.forEach(element => {
+            const elementTop = element.getBoundingClientRect().top;
+            const windowHeight = window.innerHeight;
+            
+            if (elementTop < windowHeight - 50) {
+                element.classList.add('visible');
+            }
+        });
+    }
+
+    window.addEventListener('scroll', revealOnScroll);
+    window.addEventListener('load', revealOnScroll);
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add class to trigger animations when page loads
+    const animatedElements = document.querySelectorAll('.animate-text');
+    animatedElements.forEach(element => {
+        element.style.opacity = '1';
+    });
+});
+</script>
+{% endblock %}
+
+{% block navbar %}
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container">
+        <a class="navbar-brand" href="{% url 'home' %}">Fresh Mart</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'product_list' %}">Products</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'cart' %}">
+                        <i class="fas fa-shopping-cart"></i> Cart
+                        <span class="badge bg-secondary">{{ cart_count }}</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link login-btn supplier-login" href="{% url 'supplier_login' %}">
+                        <i class="fas fa-truck"></i> Supplier Login
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+{% endblock %}
